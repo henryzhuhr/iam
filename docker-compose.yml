@@ -1,0 +1,91 @@
+# docker compose down -v
+
+# https://docs.docker.com/compose/how-tos/environment-variables/envvars/#compose_project_name
+name: iam
+
+services:
+  iam:
+    # 构建后镜像的名称和标签
+    image: iam:latest
+    # recommended to use `scripts/docker-pre-build.sh` to build the image
+    # build:
+    #   context: .
+    #   dockerfile: dockerfiles/Dockerfile
+    container_name: iam
+    networks:
+      - default
+    environment:
+      # 应用配置
+      APP_PORT: 8888
+    volumes:
+      - .:/root/iam
+      - ~/.claude:/root/.claude
+    working_dir: /root/iam
+    command: ["sleep", 'infinity']
+
+  
+  mysql:
+    image: mysql:9.5 # https://hub.docker.com/_/mysql
+    restart: always
+    networks:
+      - default
+    environment:
+      MYSQL_ROOT_PASSWORD: rootpassword
+      MYSQL_DATABASE: business
+    ports:
+      - "35069:3306"
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s # 等待 MySQL 启动完成
+    volumes:
+      # 初始化数据库脚本
+      # 重要：脚本只在数据目录为空时运行一次！ 如果你已经有一个持久化的数据卷，那么即使你更新了脚本，再次启动容器也不会重新执行这些初始化脚本。
+      # 删除容器及其关联的数据卷: docker-compose down -v
+      - ./sql:/docker-entrypoint-initdb.d
+  
+  # Redis
+  redis:
+    image: redis:8.4 # https://hub.docker.com/_/redis
+    restart: always
+    networks:
+      - default
+    # ports:
+    #   - "33308:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s # 等待 Redis 启动完成
+  
+  # Kafka
+  kafka-broker:
+    image: apache/kafka:4.1.1 # https://hub.docker.com/r/apache/kafka
+    networks:
+      - default
+    environment:
+      KAFKA_NODE_ID: 1
+      KAFKA_PROCESS_ROLES: broker,controller
+      KAFKA_LISTENERS: PLAINTEXT://0.0.0.0:9092,CONTROLLER://localhost:9093
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka-broker:9092
+      KAFKA_CONTROLLER_LISTENER_NAMES: CONTROLLER
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: CONTROLLER:PLAINTEXT,PLAINTEXT:PLAINTEXT
+      KAFKA_CONTROLLER_QUORUM_VOTERS: 1@localhost:9093
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
+      KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: 0
+      KAFKA_NUM_PARTITIONS: 3
+    healthcheck:
+      test: ["CMD", "/opt/kafka/bin/kafka-broker-api-versions.sh", "--bootstrap-server", "localhost:9092"]
+      interval: 10s
+      timeout: 10s
+      retries: 5
+      start_period: 30s
+
+networks:
+  default:
+    name: iam-network
