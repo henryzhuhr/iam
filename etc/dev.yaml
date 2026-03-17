@@ -1,6 +1,6 @@
 Name: hellogozero
 Host: 0.0.0.0
-Port: 8888
+Port: 8080
 Timeout: 1000
 Log:
   Level: debug

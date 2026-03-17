@@ -42,6 +42,7 @@ func main() {
 
 	// 按顺序注册组件（先注册的先启动）
 	componentManager.Register(component.NewPprofComponent(c.Pprof))
+	componentManager.Register(component.NewHTTPServerComponent(c, svcCtx))
 
 	// 统一启动所有组件
 	if err := componentManager.StartAll(context.Background()); err != nil {

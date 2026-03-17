@@ -12,7 +12,6 @@ type Config struct {
 	rest.RestConf
 	Infra Infra       `json:"Infra"`
 	Pprof PprofConfig `json:"Pprof,optional"`
-
 }
 
 // PprofConfig pprof性能分析配置
