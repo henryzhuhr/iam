@@ -1,0 +1,15 @@
+Name: hellogozero
+Host: 0.0.0.0
+Port: 8888
+Timeout: 1000
+Log:
+  Level: debug
+  Stat: false
+  Encoding: plain # plain 或 json
+
+LocaleDir: ./locales  # 国际化资源文件目录
+
+# Pprof 性能分析配置
+Pprof:
+  Enabled: true  # 是否启用 pprof，生产环境建议设为 false
+  Port: 6060     # pprof 服务端口
