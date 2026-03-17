@@ -18,7 +18,7 @@ USER root
 ARG INSTALL_LIST=""
 # ARG INSTALL_LIST="$INSTALL_LIST ubuntu-server"
 ARG INSTALL_LIST="$INSTALL_LIST ca-certificates locales"
-ARG INSTALL_LIST="$INSTALL_LIST vim nano tree pciutils iputils-ping"
+ARG INSTALL_LIST="$INSTALL_LIST vim nano tree curl pciutils iputils-ping"
 ARG INSTALL_LIST="$INSTALL_LIST zsh"
 ARG INSTALL_LIST="$INSTALL_LIST git openssh-client"
 ARG INSTALL_LIST="$INSTALL_LIST build-essential"
@@ -64,24 +64,21 @@ RUN set -x && \
     # Step: Set zsh as the default shell
     # ========================
     chsh -s /usr/bin/zsh && \
-    # ====== install oh-my-zsh (official) ======
-    git clone https://github.com/ohmyzsh/ohmyzsh.git --depth 1 /tmp/ohmyzsh && cd /tmp/ohmyzsh/tools && \
-    sh install.sh && rm -rf /tmp/ohmyzsh && \
-    echo "ZSH_CUSTOM=${ZSH_CUSTOM:-/root/.oh-my-zsh/custom}" && \
-    ls -al "${ZSH_CUSTOM:-/root/.oh-my-zsh/custom}" && \
-    cd "${ZSH_CUSTOM:-/root/.oh-my-zsh/custom}" && \
-    git clone https://github.com/zsh-users/zsh-autosuggestions && \
-    # ====== install oh-my-zsh (mirror) ======
-    # git clone http://mirrors.tuna.tsinghua.edu.cn/git/ohmyzsh.git --depth 1 && cd ohmyzsh/tools && \
-    # REMOTE=https://mirrors.tuna.tsinghua.edu.cn/git/ohmyzsh.git sh install.sh && \
-    # git clone https://gitee.com/henryzhuhr/zsh-autosuggestions.git --depth 1 ${ZSH_CUSTOM:-/root/.oh-my-zsh/custom}/plugins/zsh-autosuggestions && \
+    # ====== install oh-my-zsh ======
+    git clone https://github.com/ohmyzsh/ohmyzsh.git --depth 1 /tmp/ohmyzsh && \
+    sh /tmp/ohmyzsh/tools/install.sh && \
+    rm -rf /tmp/ohmyzsh && \
+    # ====== install zsh-autosuggestions ======
+    ZSH_CUSTOM="/root/.oh-my-zsh/custom" && \
+    mkdir -p "$ZSH_CUSTOM/plugins" && \
+    git clone https://github.com/zsh-users/zsh-autosuggestions "$ZSH_CUSTOM/plugins/zsh-autosuggestions" && \
     # ==============================
     # set zsh theme and plugins
     echo "ZSH_THEME='candy'" >> ~/.zshrc && \
     echo "plugins=(macos dotenv git cp python bundler rake rbenv ruby zsh-autosuggestions)" >> ~/.zshrc && \
     echo "ZSH_AUTOSUGGEST_HIGHLIGHT_STYLE='fg=#00BFFF,bg=gray,bold,underline'" >> ~/.zshrc && \
     echo "ZSH_AUTOSUGGEST_STRATEGY=(history completion)" >> ~/.zshrc && \
-    echo "source \$ZSH/oh-my-zsh.sh" >> ~/.zshrc && \
+    echo "source /root/.oh-my-zsh/oh-my-zsh.sh" >> ~/.zshrc && \
     echo "alias ll='ls -alh'" >> ~/.zshrc && \
     echo "alias la='ls -A'" >> ~/.zshrc && \
     echo "alias l='ls -CF'" >> ~/.zshrc && \
@@ -123,6 +120,5 @@ RUN set -x && \
   # 全局安装一些常用的 AI 相关工具包
   npm install -g \
   @anthropic-ai/claude-code \
-  @openai/codex && \
   npm cache clean --force && rm -rf /root/.npm && \
   rm -rf /tmp/* /var/tmp/*
