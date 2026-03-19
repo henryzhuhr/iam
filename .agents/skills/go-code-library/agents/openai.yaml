@@ -1,0 +1,4 @@
+interface:
+  display_name: "Go Code Library"
+  short_description: "Go backend template library"
+  default_prompt: "Use $go-code-library to scaffold or reference Go snippets for PostgreSQL, Redis, config loading, HTTP servers, and common service modules."
