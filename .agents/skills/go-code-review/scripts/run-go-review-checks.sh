@@ -12,7 +12,7 @@ print_section() {
 }
 
 fail() {
-  printf 'ERROR: %s\n' "$1" >&2
+  printf '错误: %s\n' "$1" >&2
   exit 2
 }
 
@@ -96,12 +96,12 @@ run_optional_check() {
     run_check "$tool_name" "$tool_name" "$@"
   else
     print_section "$tool_name"
-    printf 'SKIP: %s not found in PATH\n' "$tool_name"
+    printf '跳过: PATH 中未找到 %s\n' "$tool_name"
   fi
 }
 
-tool_exists go || fail "go is required"
-go env GOMOD >/dev/null 2>&1 || fail "go environment is unavailable"
+tool_exists go || fail "需要先安装 go"
+go env GOMOD >/dev/null 2>&1 || fail "go 环境不可用"
 
 normalize_targets "$@"
 collect_lint_targets
@@ -117,8 +117,8 @@ if [ "${#PACKAGE_TARGETS[@]}" -eq 0 ]; then
   PACKAGE_TARGETS=(./...)
 fi
 
-print_section "scope"
-printf 'Packages: %s\n' "${PACKAGE_TARGETS[*]}"
+print_section "检查范围"
+printf '包列表: %s\n' "${PACKAGE_TARGETS[*]}"
 
 GO_FILES=()
 while IFS= read -r file; do
@@ -142,11 +142,11 @@ if [ "${#GO_FILES[@]}" -gt 0 ]; then
     fi
   else
     print_section "goimports"
-    printf 'SKIP: goimports not found in PATH\n'
+    printf '跳过: PATH 中未找到 goimports\n'
   fi
 else
-  print_section "files"
-  printf 'SKIP: no Go files found for the requested scope\n'
+  print_section "文件"
+  printf '跳过: 在指定范围内未找到 Go 文件\n'
 fi
 
 run_check "go test" go test "${PACKAGE_TARGETS[@]}"
@@ -157,7 +157,7 @@ if tool_exists golangci-lint; then
   run_check "golangci-lint" golangci-lint run "${LINT_TARGETS[@]}"
 else
   print_section "golangci-lint"
-  printf 'SKIP: golangci-lint not found in PATH\n'
+  printf '跳过: PATH 中未找到 golangci-lint\n'
 fi
 
 run_optional_check ineffassign "${PACKAGE_TARGETS[@]}"

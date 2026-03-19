@@ -1,4 +1,4 @@
 interface:
   display_name: "Go 代码 Review"
   short_description: "结合 lint 和静态分析审查 Go 代码问题"
-  default_prompt: "Use $go-code-review to review this Go change, find concrete issues, and verify them with available lint and analysis tools."
+  default_prompt: "使用 $go-code-review 审查这次 Go 代码改动，找出具体问题，并结合可用的 lint 和静态分析工具进行验证。"

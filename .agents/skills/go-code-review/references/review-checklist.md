@@ -1,39 +1,39 @@
-# Go Review Checklist
+# Go Review 检查清单
 
-## Core findings
+## 核心问题类型
 
-- Broken behavior: wrong condition, wrong status code, wrong field mapping, stale interface contract, or silently ignored error.
-- Reliability risk: panic path, nil dereference, partial write, leaked resource, missing timeout, or non-idempotent retry.
-- Concurrency risk: race on shared state, lock order issue, blocked send or receive, runaway goroutine, or missing context cancellation.
-- Data integrity risk: transactional gap, inconsistent validation, lost update, or schema mismatch.
-- Security risk: authz bypass, unsafe path handling, injection surface, secret exposure, or unbounded request processing.
+- 行为错误：条件判断错误、状态码错误、字段映射错误、接口契约失配，或错误被静默忽略。
+- 可靠性风险：panic 路径、nil 解引用、部分写入、资源泄漏、缺失超时、重试不幂等。
+- 并发风险：共享状态竞争、锁顺序问题、channel 阻塞、goroutine 泄漏、context 取消未传递。
+- 数据一致性风险：事务边界缺失、校验不一致、更新丢失、模式不匹配。
+- 安全风险：鉴权绕过、路径处理不安全、注入面、密钥泄漏、请求处理无边界。
 
-## Common Go-specific smells
+## 常见 Go 特有问题
 
-- `defer` inside a loop that grows resource lifetime unexpectedly.
-- Loop variable capture in goroutines or closures.
-- Returning typed nil through an interface.
-- Mutating shared slices or maps without synchronization.
-- Comparing errors with `==` when wrapping is expected.
-- Dropping `context.Context` or replacing it with `context.Background()`.
-- Logging and swallowing an error instead of propagating it.
-- Public function returning ambiguous zero values without documentation.
-- Table-driven tests missing edge cases introduced by the change.
+- 在循环里使用 `defer`，导致资源释放时机被意外延后。
+- 在 goroutine 或闭包里捕获循环变量。
+- 通过接口返回 typed nil。
+- 对共享 slice 或 map 进行无同步写入。
+- 预期会 wrap 的错误却用 `==` 比较。
+- 丢掉 `context.Context`，或随意替换成 `context.Background()`。
+- 只记录日志却吞掉错误，不继续上抛。
+- 导出函数返回含糊的零值却没有文档说明。
+- 表驱动测试没有覆盖这次改动引入的边界情况。
 
-## Tool interpretation
+## 工具结果解读
 
-- `gofmt -l`: formatting drift only; low severity unless generated files or CI would fail.
-- `goimports -l`: missing import normalization; usually low severity.
-- `go test`: failing tests are strong evidence of a regression, especially when they touch changed code paths.
-- `go vet`: useful for suspicious constructs, copylocks, printf issues, and unreachable problems.
-- `staticcheck`: high-value signal for correctness, dead code, and API misuse.
-- `golangci-lint`: respect repo config; findings may include style and correctness, so separate the two.
-- `ineffassign`: useful confirmation for ignored writes and dead assignments.
-- `revive`: mainly maintainability unless the repo treats specific rules as required.
-- `govulncheck`: use for dependency or call-path vulnerability evidence, not as a general security substitute.
+- `gofmt -l`：主要是格式漂移，通常是低严重性，除非会直接导致 CI 或生成文件不一致。
+- `goimports -l`：说明 import 整理不一致，通常也是低严重性。
+- `go test`：如果失败且命中改动路径，通常是回归的强证据。
+- `go vet`：适合发现可疑构造、copylocks、printf 问题和部分不可达代码。
+- `staticcheck`：对正确性、死代码和 API 误用的信号价值较高。
+- `golangci-lint`：优先尊重仓库配置；它既可能报风格问题，也可能报正确性问题，要主动区分。
+- `ineffassign`：适合确认无效赋值和某些被忽略的写入。
+- `revive`：大多偏可维护性，除非仓库明确把某些规则当成必须项。
+- `govulncheck`：适合提供依赖或调用路径上的漏洞证据，不是通用安全审计替代品。
 
-## Evidence rules
+## 证据规则
 
-- Prefer quoting the exact failing condition or tool output in summary form instead of dumping raw logs.
-- When a tool is silent but the bug is still real, explain the reasoning path clearly.
-- When tools disagree, prefer the code path and repo configuration over generic lint advice.
+- 摘要里优先引用具体失败条件或工具结论，不要整段倾倒原始日志。
+- 如果工具没报错但问题仍然成立，要把推理链路写清楚。
+- 如果工具建议和实际代码路径冲突，优先相信代码行为和仓库配置，而不是泛化的 lint 建议。
