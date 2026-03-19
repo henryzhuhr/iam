@@ -1,0 +1,4 @@
+interface:
+  display_name: "Go 代码 Review"
+  short_description: "结合 lint 和静态分析审查 Go 代码问题"
+  default_prompt: "Use $go-code-review to review this Go change, find concrete issues, and verify them with available lint and analysis tools."
