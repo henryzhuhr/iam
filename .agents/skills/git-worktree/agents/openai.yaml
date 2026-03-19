@@ -1,0 +1,4 @@
+interface:
+  display_name: "Git Worktree"
+  short_description: "Batch-create and manage Git worktrees safely"
+  default_prompt: "Use $git-worktree to inspect existing worktrees and create one worktree per branch pattern in a sibling directory."
