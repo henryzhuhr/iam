@@ -1,61 +1,61 @@
 ---
 name: requirements-analysis
-description: Analyze a product idea, feature request, business requirement, or project brief into a structured development-ready requirements breakdown. Use when the user wants Codex to turn a rough idea into clear modules, scope, user roles, workflows, functional requirements, non-functional requirements, risks, dependencies, open questions, priorities, or phased implementation tasks.
+description: 将产品想法、功能诉求、业务需求或项目说明分析并拆解为结构化、可用于研发落地的需求清单。当用户希望 Codex 把模糊想法整理成明确的功能模块、范围边界、用户角色、业务流程、功能需求、非功能需求、风险、依赖、待确认问题、优先级或分阶段实施任务时使用此技能。
 ---
 
-# Requirements Analysis
+# 需求分析拆解
 
-## Overview
+## 概述
 
-Turn vague or incomplete需求 into a consistent analysis output that is immediately useful for product planning and engineering delivery. Prefer Chinese output when the user writes in Chinese.
+将模糊或不完整的需求整理为统一、可执行的分析结果，便于直接进入产品规划与研发交付。默认优先使用中文输出。
 
-## Workflow
+## 工作流程
 
-1. Read the user's input and restate the target product, feature, or business goal in one short paragraph.
-2. Infer the scenario, target users, and expected business value from the available context.
-3. Separate confirmed facts from assumptions. If key information is missing, do not block by default; continue with reasonable assumptions and mark them clearly.
-4. Break the requirement into modules or capability areas that are suitable for implementation planning.
-5. Expand each module into concrete requirements, constraints, and acceptance expectations.
-6. Identify cross-cutting concerns such as permissions, data model, integration, security, performance, observability, and rollout risk.
-7. End with a prioritized implementation view so the result can feed PRD, task breakdown, API design, or development scheduling.
+1. 阅读用户输入，并用一小段话重述目标产品、目标功能或业务目标。
+2. 基于现有上下文推断使用场景、目标用户和预期业务价值。
+3. 区分已确认事实与推测项。若关键信息缺失，默认不要阻塞，继续基于合理假设推进，并明确标注。
+4. 将需求拆分为适合实施规划的模块或能力域。
+5. 为每个模块补充具体需求、约束条件和验收预期。
+6. 识别横向关注点，例如权限、数据模型、系统集成、安全、性能、可观测性和发布风险。
+7. 以带优先级的实施视角收尾，使结果可直接用于需求文档、任务拆分、接口设计或开发排期。
 
-## Output Rules
+## 输出规则
 
-- Use the standard structure from `references/output-template.md`.
-- Use the dimension checklist from `references/analysis-dimensions.md` to avoid missing important areas.
-- Keep the response structured and actionable rather than essay-like.
-- Prefer explicit labels such as `已确认`, `假设`, `待确认`, `建议优先级`.
-- If the user's requirement is still fuzzy, produce a usable first-pass analysis plus a short list of clarification questions.
-- If the request is narrow, compress the output but still cover scope, requirements, constraints, and acceptance criteria.
-- If the request is broad, group results by phase or module to keep the output readable.
+- 使用 `references/output-template.md` 中的标准输出结构。
+- 使用 `references/analysis-dimensions.md` 作为检查清单，避免遗漏关键维度。
+- 保持输出结构化、可执行，避免写成泛泛而谈的长篇说明。
+- 优先使用 `已确认`、`假设`、`待确认`、`建议优先级` 之类的明确标签。
+- 如果用户需求仍然模糊，先产出可落地的首版分析，再附上少量关键澄清问题。
+- 如果需求范围较小，可以压缩篇幅，但仍需覆盖范围、需求、约束和验收标准。
+- 如果需求范围较大，按阶段或模块分组，保证结果可读。
 
-## Default Behavior
+## 默认行为
 
-### For incomplete input
+### 面对信息不完整的输入
 
-- Infer a reasonable product boundary.
-- Mark uncertain items as assumptions.
-- Highlight the minimum questions that would materially change implementation.
+- 推断合理的产品边界。
+- 将不确定项标记为假设。
+- 仅突出那些会实质影响方案或实施的问题。
 
-### For development-oriented requests
+### 面向开发落地的请求
 
-- Emphasize modules, APIs, data objects, permissions, edge cases, and acceptance criteria.
-- Add a suggested implementation order with MVP first.
+- 重点关注模块、接口、数据对象、权限、边界情况和验收标准。
+- 给出以最小可行版本为优先的建议实施顺序。
 
-### For planning-oriented requests
+### 面向方案规划的请求
 
-- Emphasize business goals, user roles, scenarios, scope boundaries, and priority.
-- Keep technical details high-level unless the user asks for architecture depth.
+- 重点关注业务目标、用户角色、使用场景、范围边界和优先级。
+- 除非用户明确要求架构深度，否则技术细节保持高层描述。
 
-## Quality Bar
+## 质量要求
 
-- Distinguish user goals from implementation ideas.
-- Avoid mixing mandatory requirements with optional enhancements.
-- Convert ambiguous wording into verifiable statements whenever possible.
-- Surface hidden complexity early: state transitions, authorization, data consistency, third-party dependencies, migration impact, auditability, and failure handling.
-- Produce output that another engineer can directly use as the basis for PRD, issue breakdown, or milestone planning.
+- 区分用户目标与实现手段，不要混为一谈。
+- 不要把必做需求和可选增强项混写。
+- 尽量把模糊表述转化为可验证的陈述。
+- 尽早暴露隐藏复杂度，例如状态流转、授权控制、数据一致性、第三方依赖、迁移影响、审计要求和失败处理。
+- 输出结果应能被另一位工程师直接拿去作为需求文档、任务拆解或里程碑规划的基础。
 
-## References
+## 参考文件
 
-- Read `references/output-template.md` for the default response format.
-- Read `references/analysis-dimensions.md` when the scope is medium or large, or when the user input is ambiguous and you need a fuller checklist.
+- 默认参考 `references/output-template.md` 作为输出格式。
+- 当需求范围中等及以上，或用户输入较模糊时，参考 `references/analysis-dimensions.md` 补全分析维度。

@@ -1,6 +1,6 @@
-# Output Template
+# 输出模板
 
-Use this structure by default. Omit sections that are clearly irrelevant, but keep the order stable.
+默认使用以下结构。若某些章节明显不适用，可以省略，但整体顺序尽量保持稳定。
 
 ## 1. 需求目标
 
@@ -60,7 +60,7 @@ Use this structure by default. Omit sections that are clearly irrelevant, but ke
 - 关键字段
 - 状态流转
 - 外部系统/第三方依赖
-- API 或事件流影响
+- 接口或事件流影响
 
 ## 7. 风险与待确认项
 
@@ -77,7 +77,7 @@ Use this structure by default. Omit sections that are clearly irrelevant, but ke
 
 建议使用以下分组：
 
-- P0 / MVP：没有这些功能就无法交付
+- P0 / 最小可行版本：没有这些功能就无法交付
 - P1：提升完整性或可用性
 - P2：增强项或后续迭代
 
