@@ -1,4 +1,4 @@
 interface:
-  display_name: "Go Code Library"
-  short_description: "Go backend template library"
-  default_prompt: "Use $go-code-library to scaffold or reference Go snippets for PostgreSQL, Redis, config loading, HTTP servers, and common service modules."
+  display_name: "Go 代码模板库"
+  short_description: "Go 后端场景模板与公共模块参考"
+  default_prompt: "使用 $go-code-library 为 Go 项目生成或参考 PostgreSQL、Redis、配置加载、HTTP 服务和常见公共模块代码。"
