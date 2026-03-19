@@ -1,0 +1,4 @@
+interface:
+  display_name: "需求分析拆解"
+  short_description: "将模糊想法拆成结构化研发需求清单"
+  default_prompt: "Use $requirements-analysis to turn my idea into a structured requirements analysis, scope breakdown, and development checklist."
