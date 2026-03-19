@@ -1,4 +1,4 @@
 interface:
   display_name: "Git Worktree"
-  short_description: "Batch-create and manage Git worktrees safely"
-  default_prompt: "Use $git-worktree to inspect existing worktrees and create one worktree per branch pattern in a sibling directory."
+  short_description: "安全地批量创建和管理 Git worktree 工作区"
+  default_prompt: "使用 $git-worktree 检查当前仓库已有的 worktree，并按分支模式在同级目录中批量创建缺失的 worktree。"

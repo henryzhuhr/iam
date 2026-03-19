@@ -4,10 +4,10 @@ set -euo pipefail
 
 usage() {
   cat <<'EOF'
-Usage:
+用法:
   create_worktrees.sh --pattern <branch-pattern> [--repo <repo>] [--target-base <dir>] [--dry-run]
 
-Examples:
+示例:
   create_worktrees.sh --repo /path/to/repo --pattern 'skill/*' --dry-run
   create_worktrees.sh --pattern 'feature/*'
   create_worktrees.sh --pattern 'skill/*' --target-base /tmp/repo-worktrees
@@ -42,7 +42,7 @@ while [[ $# -gt 0 ]]; do
       exit 0
       ;;
     *)
-      echo "[ERROR] Unknown argument: $1" >&2
+      echo "[错误] 未知参数: $1" >&2
       usage >&2
       exit 1
       ;;
@@ -50,7 +50,7 @@ while [[ $# -gt 0 ]]; do
 done
 
 if [[ -z "$pattern" ]]; then
-  echo "[ERROR] --pattern is required" >&2
+  echo "[错误] 必须提供 --pattern" >&2
   usage >&2
   exit 1
 fi
@@ -71,15 +71,15 @@ while IFS= read -r branch; do
 done < <(git -C "$repo_root" for-each-ref --format='%(refname:short)' "refs/heads/${pattern}" | sort)
 
 if [[ ${#branches[@]} -eq 0 ]]; then
-  echo "[INFO] No local branches matched pattern: ${pattern}"
+  echo "[信息] 没有匹配分支模式的本地分支: ${pattern}"
   exit 0
 fi
 
-echo "[INFO] Repo root: ${repo_root}"
-echo "[INFO] Pattern: ${pattern}"
-echo "[INFO] Target base: ${target_base}"
+echo "[信息] 仓库根目录: ${repo_root}"
+echo "[信息] 分支模式: ${pattern}"
+echo "[信息] 目标根目录: ${target_base}"
 if [[ "$dry_run" -eq 1 ]]; then
-  echo "[INFO] Dry run mode enabled"
+  echo "[信息] 已启用 dry-run 模式"
 fi
 
 if [[ "$dry_run" -eq 0 ]]; then
@@ -105,7 +105,7 @@ for branch in "${branches[@]}"; do
   )"
 
   if [[ -n "$existing_path" ]]; then
-    echo "[SKIP] ${branch} already has worktree: ${existing_path}"
+    echo "[跳过] ${branch} 已存在 worktree: ${existing_path}"
     skipped_count=$((skipped_count + 1))
     continue
   fi
@@ -114,22 +114,22 @@ for branch in "${branches[@]}"; do
   worktree_path="${target_base}/${branch_dir}"
 
   if [[ -e "$worktree_path" ]]; then
-    echo "[ERROR] Target path already exists and is not registered as a worktree: ${worktree_path}" >&2
+    echo "[错误] 目标路径已存在，且未注册为 worktree: ${worktree_path}" >&2
     failed_count=$((failed_count + 1))
     continue
   fi
 
   if [[ "$dry_run" -eq 1 ]]; then
-    echo "[PLAN] git -C ${repo_root} worktree add ${worktree_path} ${branch}"
+    echo "[计划] git -C ${repo_root} worktree add ${worktree_path} ${branch}"
     continue
   fi
 
-  echo "[CREATE] ${branch} -> ${worktree_path}"
+  echo "[创建] ${branch} -> ${worktree_path}"
   git -C "$repo_root" worktree add "$worktree_path" "$branch"
   created_count=$((created_count + 1))
 done
 
-echo "[INFO] Summary: created=${created_count} skipped=${skipped_count} failed=${failed_count}"
+echo "[信息] 汇总: created=${created_count} skipped=${skipped_count} failed=${failed_count}"
 
 if [[ "$failed_count" -gt 0 ]]; then
   exit 1
