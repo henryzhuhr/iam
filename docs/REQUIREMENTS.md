@@ -11,6 +11,7 @@
 |------|------|------|----------|
 | v0.1.0-draft | 2026-03-17 | - | 初始版本 |
 | v0.1.1-draft | 2026-03-17 | - | 新增核心概念说明、完善数据库表结构设计 |
+| v0.1.2-draft | 2026-03-18 | - | 新增 OAuth2 第三方登录需求 |
 
 ## 1. 项目概述
 
@@ -97,21 +98,29 @@ IAM 系统采用 **JWT + 双 Token** 方案：
 - [ ] 手机号验证码登录
 - [ ] 登出功能
 
-#### 2.2.2 Token 管理
+#### 2.2.2 第三方登录 (OAuth2)
+
+- [ ] GitHub OAuth2 登录
+- [ ] Google OAuth2 登录（预留）
+- [ ] 钉钉 OAuth2 登录（预留）
+- [ ] 第三方账号绑定/解绑
+- [ ] OAuth2 回调处理
+
+#### 2.2.3 Token 管理
 
 - [ ] JWT Token 生成/验证/刷新
 - [ ] Token 黑名单
 - [ ] 多设备登录控制
 - [ ] Token 过期策略
 
-#### 2.2.3 多因素认证 (MFA)
+#### 2.2.4 多因素认证 (MFA)
 
 - [ ] TOTP 动态验证码（Google Authenticator）
 - [ ] 短信验证码
 - [ ] 邮箱验证码
 - [ ] MFA 启用/禁用
 
-#### 2.2.4 密码策略
+#### 2.2.5 密码策略
 
 - [ ] 密码强度校验
 - [ ] 密码过期策略
@@ -227,6 +236,16 @@ POST   /api/v1/mfa/bind        # 绑定 MFA
 POST   /api/v1/mfa/verify      # 验证 MFA
 ```
 
+#### 第三方登录 (OAuth2)
+
+```
+GET    /api/v1/auth/github     # 发起 GitHub 登录
+GET    /api/v1/auth/github/callback  # GitHub 回调处理
+POST   /api/v1/auth/bind       # 绑定第三方账号
+POST   /api/v1/auth/unbind     # 解绑第三方账号
+GET    /api/v1/auth/providers  # 获取可用的第三方登录方式
+```
+
 #### 权限管理
 
 ```
@@ -264,6 +283,7 @@ DELETE /api/v1/tenants/:id     # 删除租户
 | `role_permissions` | 角色权限关系表 | id, role_id, permission_id |
 | `user_roles` | 用户角色关系表 | id, user_id, role_id |
 | `auth_tokens` | Token 表 | id, user_id, token_hash, type, expires_at, revoked |
+| `user_third_party_accounts` | 第三方账号绑定表 | id, user_id, provider, open_id, access_token, created_at |
 | `operation_logs` | 操作日志表 | id, tenant_id, user_id, action, resource, result, ip, created_at |
 | `login_logs` | 登录日志表 | id, tenant_id, user_id, result, ip, device, user_agent, created_at |
 
@@ -300,6 +320,25 @@ DELETE /api/v1/tenants/:id     # 删除租户
 **索引：**
 - `idx_tenant_email`: (tenant_id, email) - 租户内邮箱唯一
 - `idx_status`: (status) - 状态查询
+
+#### user_third_party_accounts - 第三方账号绑定表
+
+| 字段 | 类型 | 说明 |
+|------|------|------|
+| id | BIGINT | 主键 |
+| user_id | BIGINT | 用户 ID（外键） |
+| provider | VARCHAR(20) | 第三方提供商（github/google/dingtalk） |
+| open_id | VARCHAR(100) | 第三方用户唯一标识 |
+| union_id | VARCHAR(100) | 第三方统一标识（可选，用于跨应用识别） |
+| access_token | VARCHAR(500) | 第三方 Access Token（加密存储） |
+| refresh_token | VARCHAR(500) | 第三方 Refresh Token（加密存储） |
+| token_expires_at | DATETIME | Token 过期时间 |
+| created_at | DATETIME | 创建时间 |
+| updated_at | DATETIME | 更新时间 |
+
+**索引：**
+- `idx_user_provider`: (user_id, provider) - 用户 + 提供商唯一
+- `idx_open_id`: (provider, open_id) - 第三方用户唯一
 
 #### roles - 角色表
 
@@ -371,6 +410,7 @@ DELETE /api/v1/tenants/:id     # 删除租户
 
 ### Phase 4 - 完善优化 (Week 7-8)
 
+- [ ] OAuth2 第三方登录（GitHub）
 - [ ] 性能优化
 - [ ] 安全加固
 - [ ] 文档完善
@@ -380,7 +420,7 @@ DELETE /api/v1/tenants/:id     # 删除租户
 
 ## 7. 待确认事项
 
-- [ ] 是否需要支持第三方登录（GitHub、Google、微信等）？
+- [x] 是否需要支持第三方登录（GitHub、Google、微信等）？ → **已确认：需要，优先支持 GitHub，P2 需求**
 - [ ] 是否需要支持 LDAP/AD 集成？
 - [ ] 是否需要支持 OIDC/SAML 协议？
 - [ ] 是否需要提供管理后台 UI？
