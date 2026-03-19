@@ -9,7 +9,15 @@ description: 审查 Go 代码中的正确性、并发、安全性、错误处理
 
 以发现缺陷和回归风险为目标审查 Go 代码，而不是只做风格点评。把对 diff 和上下文代码的推理，与静态分析、lint、测试输出结合起来，让结论更具体、更可验证。
 
-需要更完整的检查清单时，优先读取 `references/go-checklist.md`。需要补充工具结果解读时，再读取 `references/review-checklist.md`。
+需要更完整的检查清单时，先读取 `references/go-checklist.md`，再按主题按需加载：
+
+- 风格、命名、注释：`references/go-checklist-01-style.md`
+- 错误处理、资源释放、panic：`references/go-checklist-02-error-resource.md`
+- 测试、项目组织、函数设计：`references/go-checklist-03-project-function.md`
+- 变量、控制流、结构体、slice、map、序列化：`references/go-checklist-04-language-data.md`
+- channel、goroutine、context、atomic、Mutex：`references/go-checklist-05-concurrency-context.md`
+
+需要补充工具结果解读时，再读取 `references/review-checklist.md`。
 
 ## 工作流
 
