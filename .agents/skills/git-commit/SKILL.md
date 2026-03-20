@@ -53,9 +53,9 @@ description: Use When 提交代码到 git 仓库，使用中文 commit message
 
 1. 检查 git 状态
 2. 显示变更文件列表
-3. 询问用户确认或修改提交信息
-4. 执行 git commit
-5. 显示提交结果
+3. 自动执行 `git commit` 提交代码
+4. 显示提交结果
+5. 询问用户：是否执行 `git push` 将提交推送到远程仓库
 
 ## 注意事项
 
