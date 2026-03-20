@@ -19,10 +19,11 @@ services:
       APP_PORT: 8888
     volumes:
       - .:/root/iam
+      - ../iam-worktrees:/root/iam-worktrees
       # 挂载 claude 配置目录
       # - ~/.claude:/root/.claude
       # - ~/.claude/settings.json:/root/.claude/settings.json
-      - "/Users/henryzhuhr/Library/Mobile Documents/com~apple~CloudDocs/system/.claude/settings.json:/root/.claude/settings.json:ro"
+      - "${HOME}/Library/Mobile Documents/com~apple~CloudDocs/system/.claude/settings.json:/root/.claude/settings.json:ro"
     working_dir: /root/iam
     command: ["sleep", 'infinity']
 
