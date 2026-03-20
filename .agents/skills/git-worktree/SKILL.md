@@ -21,6 +21,29 @@ description: 检查、创建和管理 Git worktree，用于并行分支开发。
 - 每个 worktree 目录名由分支名推导而来，把 `/` 替换成 `-`。
 - 如果用户指定了基础目录，优先使用用户指定值而不是默认值。
 
+默认目录结构示例：
+
+```text
+/path/to/
+├── repo/
+└── repo-worktrees/
+```
+
+如果仓库是 `/path/to/repo`，分支模式是 `skill/*`，命中分支 `skill/git-worktree` 和 `skill/openai-docs`，则最终生成的 worktree 结构类似：
+
+```text
+/path/to/
+├── repo/
+└── repo-worktrees/
+    ├── skill-git-worktree/
+    └── skill-openai-docs/
+```
+
+路径映射示例：
+
+- `skill/git-worktree` -> `repo-worktrees/skill-git-worktree`
+- `feature/login` -> `repo-worktrees/feature-login`
+
 ### 3. 创建 worktree
 
 - 批量创建时优先使用 `scripts/create_worktrees.sh`。
