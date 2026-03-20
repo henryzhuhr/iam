@@ -3,6 +3,9 @@
 # ========================
 bin/
 
+# Claude Code local settings
+.claude/settings.local.json
+
 # ========================
 #   Global/VisualStudioCode.gitignore
 # https://github.com/github/gitignore/blob/main/Global/VisualStudioCode.gitignore

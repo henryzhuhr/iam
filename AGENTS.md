@@ -1,5 +1,10 @@
 # Agent Conventions
 
+## ⚠️ 注意事项
+
+- 当你在查看项目文档的时候，始终读取 [docs/README.md](./docs/README.md) 以了解文档结构（不同文档的入口）和维护原则。
+- 如果一个目录里有 `README.md`，优先阅读它以了解该目录的内容和结构。
+
 ## 项目概述
 
 IAM (身份认证与访问管理 / Identity and Access Management) - A multi-language project with Golang backend, designed to run in Docker containers.
