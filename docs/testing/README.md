@@ -34,6 +34,9 @@
 tests/
 ├── __init__.py
 ├── conftest.py # pytest 入口：注册 CLI 参数、组装全局 fixture、决定是否托管 Go 程序
+├── framework/
+│   ├── test_config.py          # 框架自测：配置优先级、参数校验、环境变量回退
+│   └── test_support_helpers.py # 框架自测：公共断言、请求头构造、客户端错误包装
 ├── api/
 │   └── health/
 │       └── test_health.py # 当前示例 smoke 用例，演示业务接口测试写法
@@ -48,6 +51,7 @@ tests/
 按目录职责可以先这样理解：
 
 - `tests/conftest.py` 是测试框架入口，`pytest` 一进来先看这里
+- `tests/framework/` 是框架自测层，用来守住配置解析和公共 helper 的回归
 - `tests/support/` 是框架支撑层，启动 Go 程序、组装客户端、公共断言都收敛在这里
 - `tests/api/` 是业务测试层，只负责写接口用例，不应该自己散落启动服务或拼底层请求逻辑
 

@@ -3,6 +3,7 @@ from __future__ import annotations
 import os
 import shlex
 from dataclasses import dataclass
+from typing import Any, Protocol
 from urllib.parse import urlparse
 
 import pytest
@@ -35,6 +36,12 @@ class TestConfig:
     managed_app: ManagedAppConfig
 
 
+class PytestConfigLike(Protocol):
+    # `load_test_config` only needs pytest's option lookup surface, so accept
+    # any object that provides a compatible `getoption` method.
+    def getoption(self, name: str) -> Any: ...
+
+
 def _env_flag(name: str) -> bool:
     value = os.getenv(name)
     if value is None:
@@ -42,7 +49,7 @@ def _env_flag(name: str) -> bool:
     return value.strip().lower() in {"1", "true", "yes", "on"}
 
 
-def load_test_config(pytestconfig: pytest.Config) -> TestConfig:
+def load_test_config(pytestconfig: PytestConfigLike) -> TestConfig:
     # Command-line options win over env vars, which win over baked-in defaults.
     # That keeps local debugging flexible without hiding the project defaults.
     raw_base_url = (

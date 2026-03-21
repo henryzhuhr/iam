@@ -27,11 +27,13 @@ IAM_USE_EXISTING_SERVICE=1 IAM_BASE_URL=http://127.0.0.1:8080/api uv run pytest
 - `IAM_APP_CONFIG`: 覆盖默认配置文件
 - `IAM_GO_RUN_EXTRA_ARGS`: 追加到 `go run` 后面的额外参数
 - `IAM_APP_STARTUP_TIMEOUT`: 覆盖服务启动健康检查超时
+- `IAM_ENV`: 为测试运行打上逻辑环境标识，预留给后续环境映射或报告扩展
 - `IAM_TOKEN`: 预留给后续鉴权接口测试的 Bearer Token
 - `IAM_TENANT_ID`: 预留给多租户请求头注入
 
 目录约定：
 
+- `tests/framework/`: 测试框架自测，覆盖配置解析和公共 helper
 - `tests/api/`: 接口测试用例
 - `tests/support/`: 客户端、断言和公共 fixture 支撑代码
 - `tests/conftest.py`: pytest 全局参数、服务进程管理和 fixture 入口
