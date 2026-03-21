@@ -1,7 +1,7 @@
 # IAM 产品需求文档 (PRD)
 
 > 身份认证与访问管理系统 (Identity and Access Management)
-> 当前版本：v0.1.8-draft
+> 当前版本：v0.1.9-draft
 
 本文档采用目录结构维护，便于按主题阅读、按需求迭代和按模块维护。
 
