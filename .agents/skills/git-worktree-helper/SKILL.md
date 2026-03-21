@@ -1,9 +1,9 @@
 ---
-name: git-worktree
+name: git-worktree-helper
 description: 检查、创建和管理 Git worktree，用于并行分支开发。适用于需要按本地分支模式批量创建 worktree、把 worktree 放到仓库同级目录、避免为已在其他目录检出的分支重复创建 worktree、核对分支与 worktree 路径映射，或在多个分支上修改前先准备隔离工作区的场景。
 ---
 
-# Git Worktree
+# Git Worktree Helper
 
 用这个 skill 以安全、可重复的方式管理本地 Git worktree。
 
