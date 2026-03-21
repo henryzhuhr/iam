@@ -1,7 +1,7 @@
 # 身份认证与访问管理系统 需求分析文档
 
 > 身份认证与访问管理系统 (Identity and Access Management)
-> 版本：v0.1.1-draft
+> 版本：v0.1.2-draft
 
 ---
 

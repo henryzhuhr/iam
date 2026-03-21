@@ -6,13 +6,15 @@
 
 | 文档 | 说明 | 入口 |
 |------|------|------|
+| PRD 一页摘要 | 几分钟内理解需求范围、优先级和主要风险 | [PRD/00-executive-summary.md](./PRD/00-executive-summary.md) |
 | PRD | 产品需求文档(product requirement document)，按主题和 `REQ` 粒度拆分维护 | [PRD/README.md](./PRD/README.md) |
 | REQUIREMENTS | 需求分析文档(requirements analysis document)，包含功能清单、API 设计、数据库设计等 | [REQUIREMENTS.md](./REQUIREMENTS.md) |
 
 ## 推荐阅读顺序
 
-1. 先阅读 [PRD/README.md](./PRD/README.md)，了解产品背景、需求总览和各模块入口。
-2. 再阅读 [REQUIREMENTS.md](./REQUIREMENTS.md)，查看接口草案、数据库设计和更偏实现侧的分析内容。
+1. 先阅读 [PRD/00-executive-summary.md](./PRD/00-executive-summary.md)，快速了解产品范围、优先级和主要风险。
+2. 再阅读 [PRD/README.md](./PRD/README.md)，查看完整 PRD 结构、模块导航和需求入口。
+3. 最后阅读 [REQUIREMENTS.md](./REQUIREMENTS.md)，查看接口草案、数据库设计和更偏实现侧的分析内容。
 
 ## 当前结构
 
