@@ -12,6 +12,10 @@
 - 面向测试团队：根据验收标准和业务流程设计测试用例
 - 面向项目管理：跟踪版本计划、风险依赖和成功指标
 
+## 快速入口
+
+如需在几分钟内理解需求范围、优先级和主要风险，先阅读 [00-executive-summary.md](./00-executive-summary.md)。
+
 ## 产品目标
 
 | 目标类型 | 具体目标 |
@@ -35,6 +39,7 @@
 
 | 主题 | 说明 | 文档 |
 |------|------|------|
+| 一页摘要 | 快速理解产品定位、范围、优先级和待澄清项 | [00-executive-summary.md](./00-executive-summary.md) |
 | 文档概述 | 目的、适用范围、名词解释、修订历史 | [01-document-overview.md](./01-document-overview.md) |
 | 产品概述 | 背景、定位、目标、技术栈、Token 方案 | [02-product-overview.md](./02-product-overview.md) |
 | 用户分析 | 用户角色、场景、租户与用户关系 | [03-user-analysis.md](./03-user-analysis.md) |
