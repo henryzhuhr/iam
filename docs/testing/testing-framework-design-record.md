@@ -128,6 +128,9 @@
 
 ```bash
 tests/
+├── framework/
+│   ├── test_config.py
+│   └── test_support_helpers.py
 ├── api/
 │   └── health/
 │       └── test_health.py
@@ -140,6 +143,7 @@ tests/
 
 目录职责：
 
+- `tests/framework/`: 放框架自测，覆盖配置解析、公共断言和客户端辅助逻辑
 - `tests/api/`: 放业务接口测试，按业务域拆分
 - `tests/support/config.py`: 解析 `base_url`、环境变量等运行配置
 - `tests/support/client.py`: 统一请求客户端、认证会话、请求上下文
