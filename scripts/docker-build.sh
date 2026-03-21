@@ -11,10 +11,9 @@ IMAGE_TAG=${IMAGE_TAG:-"latest"}
 # ============================================================
 #   基础镜像版本配置 (可通过环境变量覆盖)
 # ============================================================
-UV_TAG=${UV_TAG:-"0.10.0"}
-NODE_TAG=${NODE_TAG:-"24"}
-GO_TAG=${GO_TAG:-"1.25"}
-
+NODE_TAG=${NODE_TAG:-"25"}
+GO_TAG=${GO_TAG:-"1.26"}
+UV_TAG=${UV_TAG:-"0.10.12"}
 
 # ============================================================
 #   镜像源配置 (本地使用国内镜像，CI 使用官方源)
@@ -25,12 +24,13 @@ UV_DEFAULT_INDEX="https://pypi.tuna.tsinghua.edu.cn/simple"
 
 # 镜像列表（格式：镜像名:标签）
 IMAGES=(
-  "ubuntu:24.04"
+  "ubuntu:26.04"
+  "node:${NODE_TAG}"
   "golang:${GO_TAG}"
   "ghcr.io/astral-sh/uv:${UV_TAG}"
-  "mysql:9.5"
-  "redis:8.4"
-  "apache/kafka:4.1.1"
+  "mysql:9.6"
+  "redis:8.6"
+  "apache/kafka:4.1.2"
 )
 
 for IMAGE in "${IMAGES[@]}"; do
@@ -57,10 +57,9 @@ BUILD_ARGS=(
   "--build-arg" "UV_DEFAULT_INDEX=${UV_DEFAULT_INDEX}"
 )
 
-docker build --progress "${BUILDKIT_PROGRESS}" \
+docker build --no-cache \
   -t "${IMAGE_NAME}:${IMAGE_TAG}" \
   -f dockerfiles/Dockerfile \
-  --no-cache \
   "${BUILD_ARGS[@]}" \
   .
 

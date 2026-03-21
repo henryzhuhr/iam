@@ -1,13 +1,13 @@
 # Get the base image
-ARG UV_TAG=latest
-ARG GO_TAG=latest
 ARG NODE_TAG=latest
+ARG GO_TAG=latest
+ARG UV_TAG=latest
 
+FROM node:${NODE_TAG} AS node-builder
 FROM golang:${GO_TAG} AS golang-builder
 FROM ghcr.io/astral-sh/uv:${UV_TAG} AS uv-builder
-FROM node:${NODE_TAG} AS node-builder
 
-FROM ubuntu:24.04
+FROM ubuntu:26.04
 
 WORKDIR /root
 USER root
@@ -21,7 +21,7 @@ ARG INSTALL_LIST="$INSTALL_LIST ca-certificates locales"
 ARG INSTALL_LIST="$INSTALL_LIST vim nano tree curl pciutils iputils-ping"
 ARG INSTALL_LIST="$INSTALL_LIST zsh"
 ARG INSTALL_LIST="$INSTALL_LIST git openssh-client"
-ARG INSTALL_LIST="$INSTALL_LIST build-essential"
+ARG INSTALL_LIST="$INSTALL_LIST build-essential binutils binutils-gold"
 ARG INSTALL_LIST="$INSTALL_LIST python3-dev"
 ARG INSTALL_LIST="$INSTALL_LIST postgresql-client"
 ARG INSTALL_LIST="$INSTALL_LIST redis-tools"
@@ -36,24 +36,31 @@ ARG MIRRORS_URL=""
 # ============================================================
 # 安装软件
 ENV DEBIAN_FRONTEND=noninteractive
+ENV LANG=zh_CN.UTF-8
+ENV LANGUAGE=zh_CN:zh
+ENV LC_ALL=zh_CN.UTF-8
 RUN set -x && \
+    # Enable bash color prompt
     sed -i 's/#force_color_prompt=yes/force_color_prompt=yes/g' ${HOME}/.bashrc && \
     if [ -n "${MIRRORS_URL}" ]; then \
+      # 24.04+ DEB822 format
       sed -i -e "s#//.*archive.ubuntu.com#//${MIRRORS_URL}#g" -e "s#//ports.ubuntu.com#//${MIRRORS_URL}#g" /etc/apt/sources.list.d/ubuntu.sources; \
     fi && \
     apt-get update && \
     apt-get upgrade -y && \
     apt-get install -y --no-install-recommends ${INSTALL_LIST} && \
+    # Generate locale
+    locale-gen zh_CN.UTF-8 && \
+    # Cleanup
     apt-get autoremove -y && \
     apt-get clean all && \
-    rm -rf /var/lib/apt/lists/* && \
-    rm -rf /tmp/* /var/tmp/*
-
-ENV LANG=zh_CN.utf8
+    rm -rf /tmp/* /var/tmp/* /var/lib/apt/lists/*
 
 # 系统时间错误可能导致: `tls: failed to verify certificate: x509: certificate signed by unknown authority`
 # 修改时区 (date -R 检查当前时间)
-RUN ln -sf /usr/share/zoneinfo/Asia/Shanghai /etc/localtime
+# 设置时区
+RUN ln -sf /usr/share/zoneinfo/Asia/Shanghai /etc/localtime && \
+    echo "Asia/Shanghai" > /etc/timezone
 
 # 启用 bash 补全
 # RUN sed -i.bak '/^#if ! shopt -oq posix; then$/,/^#fi$/s/^#//' /etc/bash.bashrc
@@ -63,19 +70,19 @@ RUN set -x && \
     # ========================
     # Step: Set zsh as the default shell
     # ========================
-    chsh -s /usr/bin/zsh && \
+    chsh -s /usr/bin/zsh root && \
     # ====== install oh-my-zsh ======
     git clone https://github.com/ohmyzsh/ohmyzsh.git --depth 1 /tmp/ohmyzsh && \
-    sh /tmp/ohmyzsh/tools/install.sh && \
+    sh /tmp/ohmyzsh/tools/install.sh --unattended && \
     rm -rf /tmp/ohmyzsh && \
     # ====== install zsh-autosuggestions ======
     ZSH_CUSTOM="/root/.oh-my-zsh/custom" && \
     mkdir -p "$ZSH_CUSTOM/plugins" && \
-    git clone https://github.com/zsh-users/zsh-autosuggestions "$ZSH_CUSTOM/plugins/zsh-autosuggestions" && \
+    git clone https://github.com/zsh-users/zsh-autosuggestions --depth 1 "$ZSH_CUSTOM/plugins/zsh-autosuggestions" && \
     # ==============================
     # set zsh theme and plugins
     echo "ZSH_THEME='candy'" >> ~/.zshrc && \
-    echo "plugins=(macos dotenv git cp python bundler rake rbenv ruby zsh-autosuggestions)" >> ~/.zshrc && \
+    echo "plugins=(git cp python zsh-autosuggestions)" >> ~/.zshrc && \
     echo "ZSH_AUTOSUGGEST_HIGHLIGHT_STYLE='fg=#00BFFF,bg=gray,bold,underline'" >> ~/.zshrc && \
     echo "ZSH_AUTOSUGGEST_STRATEGY=(history completion)" >> ~/.zshrc && \
     echo "source /root/.oh-my-zsh/oh-my-zsh.sh" >> ~/.zshrc && \
@@ -93,32 +100,38 @@ RUN set -x && \
 #   Golang 环境
 # ============================================================
 COPY --from=golang-builder /usr/local/go /usr/local/go
-ENV PATH="/usr/local/go/bin:$PATH"
-ENV PATH="/root/go/bin:$PATH"
+ENV PATH="/usr/local/go/bin:/root/go/bin:$PATH"
+ENV GOPROXY=https://goproxy.cn,direct
+
 
 # ============================================================
 #   Python 环境
 # ============================================================
-# 使用 uv
 COPY --from=uv-builder /uv /uvx /bin/
-
 ARG UV_DEFAULT_INDEX="https://pypi.org/simple"
 ENV UV_DEFAULT_INDEX=${UV_DEFAULT_INDEX}
-
-# 提升虚拟环境 python 的优先级
 ENV VIRTUAL_ENV_DISABLE_PROMPT=1
+
 
 # ============================================================
 #   Node.js 环境
 # ============================================================
-COPY --from=node-builder /usr/local/ /usr/local/
+COPY --from=node-builder /usr/local/bin/node          /usr/local/bin/
+COPY --from=node-builder /usr/local/lib/node_modules  /usr/local/lib/node_modules
+ENV PATH="/usr/local/bin:$PATH"
 ARG NPM_CONFIG_REGISTRY="https://registry.npmjs.org"
-# npm 原生识别 NPM_CONFIG_* 前缀的环境变量，无需显式调用 npm config set
 ENV NPM_CONFIG_REGISTRY=${NPM_CONFIG_REGISTRY}
 
 RUN set -x && \
-  # 全局安装一些常用的 AI 相关工具包
+  # Create symlinks for npm and npx
+  ln -s ../lib/node_modules/npm/bin/npm-cli.js /usr/local/bin/npm && \
+  ln -s ../lib/node_modules/npm/bin/npx-cli.js /usr/local/bin/npx && \
+  # Install Global npm packages
   npm install -g \
-  @anthropic-ai/claude-code \
-  npm cache clean --force && rm -rf /root/.npm && \
-  rm -rf /tmp/* /var/tmp/*
+    @openai/codex \
+    @anthropic-ai/claude-code && \
+  # Clean up npm cache and temporary files
+  npm cache clean --force && \
+  rm -rf /tmp/* /var/tmp/* /root/.npm
+
+CMD ["/usr/bin/zsh"]

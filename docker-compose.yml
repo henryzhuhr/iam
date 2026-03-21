@@ -4,6 +4,8 @@
 name: iam
 
 services:
+  # docker exec -it --workdir /root/iam iam codex
+  # docker exec -it --workdir /root/iam iam claude
   iam:
     # 构建后镜像的名称和标签
     image: iam:latest
@@ -20,8 +22,9 @@ services:
     volumes:
       - .:/root/iam
       - ../iam-worktrees:/root/iam-worktrees
-      # 挂载 claude 配置目录
-      # - ~/.claude:/root/.claude
+      # 挂载 CodeX 配置目录
+      - ~/.codex:/root/.codex
+      # 挂载 Claude 配置文件（只读）
       # - ~/.claude/settings.json:/root/.claude/settings.json
       - "${HOME}/Library/Mobile Documents/com~apple~CloudDocs/system/.claude/settings.json:/root/.claude/settings.json:ro"
     working_dir: /root/iam
@@ -29,7 +32,7 @@ services:
 
   
   mysql:
-    image: mysql:9.5 # https://hub.docker.com/_/mysql
+    image: mysql:9.6 # https://hub.docker.com/_/mysql
     restart: always
     networks:
       - default
@@ -52,7 +55,7 @@ services:
   
   # Redis
   redis:
-    image: redis:8.4 # https://hub.docker.com/_/redis
+    image: redis:8.6 # https://hub.docker.com/_/redis
     restart: always
     networks:
       - default
@@ -67,7 +70,7 @@ services:
   
   # Kafka
   kafka-broker:
-    image: apache/kafka:4.1.1 # https://hub.docker.com/r/apache/kafka
+    image: apache/kafka:4.1.2 # https://hub.docker.com/r/apache/kafka
     networks:
       - default
     environment:
@@ -92,4 +95,4 @@ services:
 
 networks:
   default:
-    name: iam-network
+    driver: bridge

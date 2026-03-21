@@ -2,7 +2,10 @@ module iam
 
 go 1.25
 
-require github.com/zeromicro/go-zero v1.10.0
+require (
+	github.com/google/uuid v1.6.0
+	github.com/zeromicro/go-zero v1.10.0
+)
 
 require (
 	github.com/beorn7/perks v1.0.1 // indirect
@@ -12,7 +15,6 @@ require (
 	github.com/go-logr/logr v1.4.2 // indirect
 	github.com/go-logr/stdr v1.2.2 // indirect
 	github.com/golang-jwt/jwt/v4 v4.5.2 // indirect
-	github.com/google/uuid v1.6.0 // indirect
 	github.com/grafana/pyroscope-go v1.2.7 // indirect
 	github.com/grafana/pyroscope-go/godeltaprof v0.1.9 // indirect
 	github.com/grpc-ecosystem/grpc-gateway/v2 v2.20.0 // indirect
