@@ -34,9 +34,11 @@ IAM_USE_EXISTING_SERVICE=1 IAM_BASE_URL=http://127.0.0.1:8080/api uv run pytest
 目录约定：
 
 - `tests/framework/`: 测试框架自测，覆盖配置解析和公共 helper
+- `tests/hooks/`: pytest hook，例如 CLI 参数注册
+- `tests/fixtures/`: 共享 fixture，例如 `api_client` 和 `managed_go_app`
 - `tests/api/`: 接口测试用例
-- `tests/support/`: 客户端、断言和公共 fixture 支撑代码
-- `tests/conftest.py`: pytest 全局参数、服务进程管理和 fixture 入口
+- `tests/helpers/`: 普通辅助模块，例如客户端、断言、配置和进程管理
+- `tests/conftest.py`: pytest 插件装配入口，按语义加载 hooks 和 fixtures
 
 ## Issues
 

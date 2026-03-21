@@ -8,7 +8,7 @@ from pathlib import Path
 
 import httpx
 
-from tests.support.config import ManagedAppConfig
+from tests.helpers.config import ManagedAppConfig
 
 
 class ManagedGoApp:
