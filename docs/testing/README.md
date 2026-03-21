@@ -33,14 +33,18 @@
 ```bash
 tests/
 ├── __init__.py
-├── conftest.py # pytest 入口：注册 CLI 参数、组装全局 fixture、决定是否托管 Go 程序
+├── conftest.py # pytest 插件装配入口：按语义加载 hooks 和 fixtures
+├── hooks/
+│   └── cli.py              # pytest hook：注册 CLI 参数
+├── fixtures/
+│   └── runtime.py          # session-scoped fixture：配置、上下文、应用托管、APIClient
 ├── framework/
 │   ├── test_config.py          # 框架自测：配置优先级、参数校验、环境变量回退
-│   └── test_support_helpers.py # 框架自测：公共断言、请求头构造、客户端错误包装
+│   └── test_helpers.py         # 框架自测：公共断言、请求头构造、客户端错误包装
 ├── api/
 │   └── health/
 │       └── test_health.py # 当前示例 smoke 用例，演示业务接口测试写法
-└── support/
+└── helpers/
     ├── __init__.py
     ├── app.py          # ManagedGoApp：负责 go run、健康检查和进程清理
     ├── assertions.py   # 公共响应断言，减少各个测试文件重复写 JSON 校验
@@ -50,40 +54,44 @@ tests/
 
 按目录职责可以先这样理解：
 
-- `tests/conftest.py` 是测试框架入口，`pytest` 一进来先看这里
+- `tests/conftest.py` 是 pytest 插件装配入口，本身只负责按语义加载 hook 和 fixture 模块
+- `tests/hooks/` 是 hook 层，放 `pytest_addoption` 这类 pytest 生命周期扩展
+- `tests/fixtures/` 是 fixture 层，放 `test_config`、`managed_go_app`、`api_client` 这类共享夹具
 - `tests/framework/` 是框架自测层，用来守住配置解析和公共 helper 的回归
-- `tests/support/` 是框架支撑层，启动 Go 程序、组装客户端、公共断言都收敛在这里
+- `tests/helpers/` 是普通辅助模块层，启动 Go 程序、组装客户端、公共断言都收敛在这里
 - `tests/api/` 是业务测试层，只负责写接口用例，不应该自己散落启动服务或拼底层请求逻辑
 
 当前版本的测试链路是：
 
-1. `pytest` 从 `tests/conftest.py` 的 `pytest_addoption` 注册运行参数，例如 `--base-url`、`--app-config`、`--use-existing-service`
-2. `test_config` fixture 调用 `tests/support/config.py` 中的 `load_test_config()`，合并 CLI 参数、环境变量和默认值
-3. `managed_go_app` fixture 决定是否启动 Go 程序
+1. `pytest` 先加载 `tests/conftest.py`，再由它按语义装配 `tests/hooks/` 和 `tests/fixtures/`
+2. `tests/hooks/cli.py` 中的 `pytest_addoption` 注册运行参数，例如 `--base-url`、`--app-config`、`--use-existing-service`
+3. `tests/fixtures/runtime.py` 中的 `test_config` fixture 调用 `tests/helpers/config.py` 的 `load_test_config()`，合并 CLI 参数、环境变量和默认值
+4. `tests/fixtures/runtime.py` 中的 `managed_go_app` fixture 决定是否启动 Go 程序
    - 默认模式：创建 `ManagedGoApp`，并调用 `start(base_url=...)`
    - 外部服务模式：如果设置了 `--use-existing-service` 或 `IAM_USE_EXISTING_SERVICE=1`，则跳过启动
-4. 真正启动 Go 程序的代码在 `tests/support/app.py` 的 `ManagedGoApp.start()`
+5. 真正启动 Go 程序的代码在 `tests/helpers/app.py` 的 `ManagedGoApp.start()`
    - 这里执行的是 `go run <entry> -f <config> ...`
    - 启动后会轮询 `<base_url>/health`，只有健康检查通过后才进入测试阶段
-5. `api_client` fixture 依赖 `managed_go_app`，所以所有接口测试都会在服务 ready 之后才发请求
-6. 业务测试文件放在 `tests/api/<domain>/` 下，通过 `api_client` 发请求，通过 `tests/support/assertions.py` 做公共 JSON 断言
+6. `tests/fixtures/runtime.py` 中的 `api_client` fixture 依赖 `managed_go_app`，所以所有接口测试都会在服务 ready 之后才发请求
+7. 业务测试文件放在 `tests/api/<domain>/` 下，通过 `api_client` 发请求，通过 `tests/helpers/assertions.py` 做公共 JSON 断言
 
 可以先看下面这张图，再回来看上面的编号步骤：
 
 ```mermaid
 flowchart TD
-    A["pytest 启动"] --> B["tests/conftest.py<br/>pytest_addoption"]
-    B --> C["test_config fixture"]
-    C --> D["tests/support/config.py<br/>load_test_config()"]
-    D --> E{是否使用外部服务}
-    E -->|否，默认模式| F["managed_go_app fixture"]
-    F --> G["tests/support/app.py<br/>ManagedGoApp.start()"]
-    G --> H["执行 go run app/main.go -f etc/dev.yaml ..."]
-    H --> I["轮询 /health 健康检查"]
-    I --> J["api_client fixture"]
-    E -->|是| J
-    J --> K["tests/api/&lt;domain&gt;/test_*.py"]
-    K --> L["tests/support/assertions.py"]
+    A["pytest 启动"] --> B["tests/conftest.py<br/>plugin wiring"]
+    B --> C["tests/hooks/cli.py<br/>pytest_addoption"]
+    B --> D["tests/fixtures/runtime.py<br/>test_config fixture"]
+    D --> E["tests/helpers/config.py<br/>load_test_config()"]
+    E --> F{是否使用外部服务}
+    F -->|否，默认模式| G["managed_go_app fixture"]
+    G --> H["tests/helpers/app.py<br/>ManagedGoApp.start()"]
+    H --> I["执行 go run app/main.go -f etc/dev.yaml ..."]
+    I --> J["轮询 /health 健康检查"]
+    J --> K["api_client fixture"]
+    F -->|是| K
+    K --> L["tests/api/&lt;domain&gt;/test_*.py"]
+    L --> M["tests/helpers/assertions.py"]
 ```
 
 这张图要表达的核心只有两点：
@@ -93,8 +101,8 @@ flowchart TD
 
 如果新人问“Go 程序到底是从哪里启动的”，最直接的答案是：
 
-- fixture 入口在 `tests/conftest.py` 的 `managed_go_app`
-- 真正执行 `go run` 的位置在 `tests/support/app.py` 的 `ManagedGoApp.start()`
+- fixture 入口在 `tests/fixtures/runtime.py` 的 `managed_go_app`
+- 真正执行 `go run` 的位置在 `tests/helpers/app.py` 的 `ManagedGoApp.start()`
 
 ## 文档清单
 

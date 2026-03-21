@@ -5,7 +5,7 @@ from typing import Any
 
 import pytest
 
-from tests.support.config import (
+from tests.helpers.config import (
     DEFAULT_APP_CONFIG,
     DEFAULT_APP_ENTRY,
     DEFAULT_APP_STARTUP_TIMEOUT_SECONDS,

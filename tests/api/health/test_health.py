@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import pytest
 
-from tests.support.assertions import assert_json_response
+from tests.helpers.assertions import assert_json_response
 
 pytestmark = [pytest.mark.api, pytest.mark.smoke]
 

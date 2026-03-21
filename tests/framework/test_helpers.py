@@ -3,8 +3,8 @@ from __future__ import annotations
 import httpx
 import pytest
 
-from tests.support.assertions import assert_json_response
-from tests.support.client import APIClient, AuthSession, RequestContext
+from tests.helpers.assertions import assert_json_response
+from tests.helpers.client import APIClient, AuthSession, RequestContext
 
 
 def test_auth_session_as_headers_omits_empty_values() -> None:

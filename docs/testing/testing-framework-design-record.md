@@ -128,27 +128,35 @@
 
 ```bash
 tests/
+├── hooks/
+│   └── cli.py
+├── fixtures/
+│   └── runtime.py
 ├── framework/
 │   ├── test_config.py
-│   └── test_support_helpers.py
+│   └── test_helpers.py
 ├── api/
 │   └── health/
 │       └── test_health.py
-├── support/
+├── helpers/
 │   ├── assertions.py
 │   ├── client.py
-│   └── config.py
+│   ├── config.py
+│   └── app.py
 └── conftest.py
 ```
 
 目录职责：
 
+- `tests/hooks/`: 放 pytest hook，例如 `pytest_addoption`
+- `tests/fixtures/`: 放共享 fixture，例如 `test_config`、`managed_go_app`、`api_client`
 - `tests/framework/`: 放框架自测，覆盖配置解析、公共断言和客户端辅助逻辑
 - `tests/api/`: 放业务接口测试，按业务域拆分
-- `tests/support/config.py`: 解析 `base_url`、环境变量等运行配置
-- `tests/support/client.py`: 统一请求客户端、认证会话、请求上下文
-- `tests/support/assertions.py`: 放响应断言工具
-- `tests/conftest.py`: 放 pytest 参数和全局 fixture
+- `tests/helpers/config.py`: 解析 `base_url`、环境变量等运行配置
+- `tests/helpers/client.py`: 统一请求客户端、认证会话、请求上下文
+- `tests/helpers/assertions.py`: 放响应断言工具
+- `tests/helpers/app.py`: 放 Go 服务生命周期托管逻辑
+- `tests/conftest.py`: 只做 pytest 插件装配
 
 ### 5.3 固定的公共接口
 
@@ -200,9 +208,10 @@ pytest CLI 参数：
 当前已经实现的内容包括：
 
 - `pyproject.toml` 中的 `pytest` 配置和 `httpx` 依赖
-- `tests/conftest.py` 中的 CLI 参数、服务进程管理和全局 fixture
-- `tests/support/app.py` 中的 Go 服务生命周期托管
-- `tests/support/` 下的客户端、配置、断言支撑层
+- `tests/hooks/cli.py` 中的 CLI 参数注册
+- `tests/fixtures/runtime.py` 中的服务进程管理和全局 fixture
+- `tests/helpers/app.py` 中的 Go 服务生命周期托管
+- `tests/helpers/` 下的客户端、配置、断言支撑层
 - `tests/api/health/test_health.py` 中的健康检查 smoke 用例
 - `README.md` 中的最小运行说明
 
@@ -253,7 +262,7 @@ IAM_USE_EXISTING_SERVICE=1 IAM_BASE_URL=http://127.0.0.1:8080/api uv run pytest
 1. 在 `tests/api/<domain>/` 下创建测试文件，命名为 `test_<feature>.py`
 2. 在文件顶部声明 `pytestmark`，至少包含 `pytest.mark.api`
 3. 使用 `api_client` 发起请求，不直接在用例里创建裸 `httpx.Client`
-4. 使用 `assert_json_response` 做 JSON 响应断言
+4. 使用 `tests/helpers/assertions.py` 里的 `assert_json_response` 做 JSON 响应断言
 5. 先断言状态码和基础返回结构，再断言业务字段
 6. 直接运行当前文件，再按需要跑 `-m smoke` 或完整 `pytest`；默认不需要手动先起 Go 服务
 7. 如果本次新增测试引入了新的公共约定，同步更新本文档
@@ -263,7 +272,7 @@ IAM_USE_EXISTING_SERVICE=1 IAM_BASE_URL=http://127.0.0.1:8080/api uv run pytest
 ```python
 import pytest
 
-from tests.support.assertions import assert_json_response
+from tests.helpers.assertions import assert_json_response
 
 pytestmark = [pytest.mark.api]
 
