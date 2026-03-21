@@ -121,6 +121,10 @@ internal/
 
 ## 测试规范
 
+- Python 相关代码或测试代码发生任何变更后，提交前必须执行 `uv run ruff check .`。
+- `uv run ruff check tests` 可以作为本地快速自检，但不能替代 `uv run ruff check .`。
+- 如果 Ruff 报错，必须修复后再继续提交、评审或交付。
+
 ## Git 工作流
 
 ## 注意事项
