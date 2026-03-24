@@ -18,6 +18,7 @@
 
 - 当前页里的测试框架架构概览
 - `testing-framework-design-record.md` 里的设计、决策和迭代记录
+- `testing-framework-optimization-plan.md` 里的下一阶段优化优先级和验收标准
 
 其余文档先在目录索引中保留规划位，后续按需要补齐。
 
@@ -25,6 +26,7 @@
 
 1. 先读当前页，了解测试文档目录、角色分工和索引方式。
 2. 再读 [testing-framework-design-record.md](./testing-framework-design-record.md)，查看 `pytest` API 测试框架的设计背景、问题澄清、用户决策和当前落地方案。
+3. 最后读 [testing-framework-optimization-plan.md](./testing-framework-optimization-plan.md)，查看下一阶段优化计划、优先级和验收标准。
 
 ## 测试框架架构概览
 
@@ -109,6 +111,7 @@ flowchart TD
 | 文档 | 说明 | 状态 | 入口 |
 |------|------|------|------|
 | Testing Framework Design Record | `pytest` API 测试框架设计文档、决策记录、新增接口测试操作模板与迭代约定 | 已落地 | [testing-framework-design-record.md](./testing-framework-design-record.md) |
+| Testing Framework Optimization Plan | 测试框架下一阶段优化计划、优先级、验收标准与依赖关系 | 已落地 | [testing-framework-optimization-plan.md](./testing-framework-optimization-plan.md) |
 | Test Case Writing Guide | 测试用例编写规范、目录落位、断言策略和常用模板 | 待后续添加 | - |
 | Testing Framework Architecture | 测试框架分层、fixture 关系、请求流和扩展点说明 | 当前页已概览，独立文档待后续添加 | 当前页 |
 | Testing Metrics Guide | 测试指标定义、统计口径和观察方式 | 待后续添加 | - |
@@ -119,12 +122,14 @@ flowchart TD
 ```bash
 docs/testing/
 ├── README.md
-└── testing-framework-design-record.md
+├── testing-framework-design-record.md
+└── testing-framework-optimization-plan.md
 ```
 
 ## 维护约定
 
 - 测试框架的范围、运行模型、fixture 约定、目录结构和演进策略优先更新 `testing-framework-design-record.md`。
+- 测试框架下一阶段的实施顺序、优先级、验收标准和依赖关系优先更新 `testing-framework-optimization-plan.md`。
 - 当前页负责目录定位、架构概览、文档清单、当前版本边界和后续规划，不重复维护主文档正文。
 - 后续新增测试文档时，优先使用语义化文件名，而不是依赖编号排序。
 - 当测试用例编写规范、测试架构、测试指标或测试结果说明稳定后，再补对应独立文档。
