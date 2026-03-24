@@ -4,8 +4,10 @@
 name: iam
 
 services:
+  # docker exec -it --workdir /root iam zsh
   # docker exec -it --workdir /root/iam iam codex
   # docker exec -it --workdir /root/iam iam claude
+  # docker exec -it --workdir /root/iam iam claude --permission-mode bypassPermissions
   iam:
     # 构建后镜像的名称和标签
     image: iam:latest
