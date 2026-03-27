@@ -43,30 +43,17 @@ T = (CurrentTime - T0) / X
 
 ### 2.2 工作流程
 
-```
-┌─────────────┐         ┌──────────────┐
-│  用户手机    │         │   IAM 服务器  │
-│ (Authenticator)       │              │
-└──────┬──────┘         └──────┬───────┘
-       │                       │
-       │  1. 展示二维码        │
-       │  (包含 Secret)        │
-       │<──────────────────────┤
-       │                       │
-       │  2. 扫描并存储 Secret │
-       │                       │
-       │  3. 每 30 秒生成 6 位码   │
-       │     TOTP = HMAC(Secret, Time) │
-       │                       │
-       │  4. 输入验证码        │
-       │──────────────────────>│
-       │                       │
-       │  5. 服务器用相同算法验证 │
-       │     (允许±1 个时间步长)  │
-       │                       │
-       │  6. 验证结果          │
-       │<──────────────────────┤
-       │                       │
+```mermaid
+sequenceDiagram
+    participant P as 用户手机(Authenticator)
+    participant S as IAM 服务器
+
+    S-->>P: 1. 展示二维码（包含 Secret）
+    Note over P: 2. 扫描并存储 Secret
+    Note over P: 3. 每 30 秒生成 6 位码<br/>TOTP = HMAC(Secret, Time)
+    P->>S: 4. 输入验证码
+    Note over S: 5. 用相同算法验证<br/>允许 ±1 个时间步长
+    S-->>P: 6. 验证结果
 ```
 
 ### 2.3 二维码格式
