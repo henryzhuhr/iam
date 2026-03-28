@@ -23,7 +23,6 @@ services:
       APP_PORT: 8888
     volumes:
       - .:/root/iam
-      - ../iam-worktrees:/root/iam-worktrees
       # 挂载 CodeX 配置目录
       - ~/.codex:/root/.codex
       # 挂载 Claude 配置文件（只读）
