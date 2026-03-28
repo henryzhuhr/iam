@@ -156,60 +156,72 @@ GET    /api/v1/usage/resource-usage      # 资源使用情况
 
 **数据库设计：**
 
-```sql
--- 租户配额表
-CREATE TABLE tenant_quotas (
-    id BIGINT PRIMARY KEY,
-    tenant_id BIGINT NOT NULL UNIQUE,
-    max_users INT DEFAULT 1000,
-    max_roles INT DEFAULT 50,
-    max_permissions INT DEFAULT 200,
-    max_user_groups INT DEFAULT 20,
-    max_admin_users INT DEFAULT 10,
-    api_call_monthly BIGINT DEFAULT 10000000,
-    storage_mb INT DEFAULT 1024,
-    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
-);
+**租户配额表（tenant_quotas）**
 
--- 配额使用记录表
-CREATE TABLE quota_usage (
-    id BIGINT PRIMARY KEY,
-    tenant_id BIGINT NOT NULL,
-    quota_type VARCHAR(50) NOT NULL,
-    used_count INT DEFAULT 0,
-    limit_count INT NOT NULL,
-    last_checked_at DATETIME,
-    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-    UNIQUE KEY uk_tenant_type (tenant_id, quota_type)
-);
+| 字段 | 类型 | 必填 | 说明 | 示例/默认值 |
+|------|------|------|------|------|
+| id | BIGINT | 是 | 主键 | 1001 |
+| tenant_id | BIGINT | 是 | 租户 ID（唯一） | 100 |
+| max_users | INT | - | 最大用户数 | 1000 |
+| max_roles | INT | - | 最大角色数 | 50 |
+| max_permissions | INT | - | 最大权限数 | 200 |
+| max_user_groups | INT | - | 最大用户组数 | 20 |
+| max_admin_users | INT | - | 最大管理员数 | 10 |
+| api_call_monthly | BIGINT | - | 月度 API 调用次数 | 10000000 |
+| storage_mb | INT | - | 存储空间（MB） | 1024 |
+| created_at | DATETIME | - | 创建时间 | 2026-03-28 10:00:00 |
+| updated_at | DATETIME | - | 更新时间 | 2026-03-28 10:00:00 |
 
--- 配额告警记录表
-CREATE TABLE quota_alerts (
-    id BIGINT PRIMARY KEY,
-    tenant_id BIGINT NOT NULL,
-    quota_type VARCHAR(50) NOT NULL,
-    threshold_percent INT NOT NULL,
-    current_usage INT NOT NULL,
-    is_sent BOOLEAN DEFAULT FALSE,
-    sent_at DATETIME,
-    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-    INDEX idx_tenant (tenant_id, created_at)
-);
+---
 
--- API 调用统计（用于限流和计费）
-CREATE TABLE api_usage_stats (
-    id BIGINT PRIMARY KEY,
-    tenant_id BIGINT NOT NULL,
-    user_id BIGINT,
-    api_path VARCHAR(255) NOT NULL,
-    call_count BIGINT DEFAULT 0,
-    stat_date DATE NOT NULL,
-    UNIQUE KEY uk_tenant_user_api_date (tenant_id, user_id, api_path, stat_date),
-    INDEX idx_tenant_date (tenant_id, stat_date)
-);
-```
+**配额使用记录表（quota_usage）**
+
+| 字段 | 类型 | 必填 | 说明 | 示例 |
+|------|------|------|------|------|
+| id | BIGINT | 是 | 主键 | 2001 |
+| tenant_id | BIGINT | 是 | 租户 ID | 100 |
+| quota_type | VARCHAR(50) | 是 | 配额类型 | max_users/api_call_monthly |
+| used_count | INT | - | 已使用数量 | 850 |
+| limit_count | INT | 是 | 配额上限 | 1000 |
+| last_checked_at | DATETIME | 否 | 最后检查时间 | 2026-03-28 10:00:00 |
+| created_at | DATETIME | - | 创建时间 | 2026-03-28 10:00:00 |
+| updated_at | DATETIME | - | 更新时间 | 2026-03-28 10:00:00 |
+
+**索引**：`uk_tenant_type` (tenant_id, quota_type) — 唯一索引
+
+---
+
+**配额告警记录表（quota_alerts）**
+
+| 字段 | 类型 | 必填 | 说明 | 示例 |
+|------|------|------|------|------|
+| id | BIGINT | 是 | 主键 | 3001 |
+| tenant_id | BIGINT | 是 | 租户 ID | 100 |
+| quota_type | VARCHAR(50) | 是 | 配额类型 | max_users |
+| threshold_percent | INT | 是 | 阈值百分比 | 80/90/100 |
+| current_usage | INT | 是 | 当前使用量 | 850 |
+| is_sent | BOOLEAN | - | 是否已发送 | true/false |
+| sent_at | DATETIME | 否 | 发送时间 | 2026-03-28 10:00:00 |
+| created_at | DATETIME | - | 创建时间 | 2026-03-28 10:00:00 |
+
+**索引**：`idx_tenant` (tenant_id, created_at)
+
+---
+
+**API 调用统计表（api_usage_stats）**
+
+| 字段 | 类型 | 必填 | 说明 | 示例 |
+|------|------|------|------|------|
+| id | BIGINT | 是 | 主键 | 4001 |
+| tenant_id | BIGINT | 是 | 租户 ID | 100 |
+| user_id | BIGINT | 否 | 用户 ID | 2001 |
+| api_path | VARCHAR(255) | 是 | API 路径 | /api/v1/users |
+| call_count | BIGINT | - | 调用次数 | 1500 |
+| stat_date | DATE | 是 | 统计日期 | 2026-03-28 |
+
+**索引**：
+- `uk_tenant_user_api_date` (tenant_id, user_id, api_path, stat_date) — 唯一索引
+- `idx_tenant_date` (tenant_id, stat_date) — 按租户 + 日期查询
 
 **验收标准：**
 

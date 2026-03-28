@@ -132,36 +132,41 @@ POST   /api/v1/auth/code/verify        # 校验验证码
 
 **数据库设计：**
 
-```sql
--- 验证码发送记录表
-CREATE TABLE verification_codes (
-    id BIGINT PRIMARY KEY,
-    target VARCHAR(100) NOT NULL,      -- 邮箱/手机号
-    code_hash VARCHAR(64) NOT NULL,    -- 验证码哈希
-    type VARCHAR(20) NOT NULL,         -- email_login/phone_login/password_reset
-    expires_at DATETIME NOT NULL,
-    verify_count INT DEFAULT 0,        -- 已验证次数
-    max_verify_count INT DEFAULT 5,    -- 最大验证次数
-    is_used BOOLEAN DEFAULT FALSE,
-    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-    INDEX idx_target_type (target, type),
-    INDEX idx_expires (expires_at)
-);
+**验证码发送记录表（verification_codes）**
 
--- 验证码发送记录（用于频率限制）
-CREATE TABLE code_send_logs (
-    id BIGINT PRIMARY KEY,
-    target VARCHAR(100) NOT NULL,
-    type VARCHAR(20) NOT NULL,
-    ip_address VARCHAR(45),
-    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-    INDEX idx_target_time (target, type, created_at),
-    INDEX idx_ip_time (ip_address, created_at)
-);
+| 字段 | 类型 | 必填 | 说明 | 示例 |
+|------|------|------|------|------|
+| id | BIGINT | 是 | 主键 | 1001 |
+| target | VARCHAR(100) | 是 | 邮箱/手机号 | user@example.com / 13800138000 |
+| code_hash | VARCHAR(64) | 是 | 验证码哈希 | hash_xxxxxxxxxxxxx |
+| type | VARCHAR(20) | 是 | 验证码类型 | email_login/phone_login/password_reset |
+| expires_at | DATETIME | 是 | 过期时间 | 2026-03-28 10:10:00 |
+| verify_count | INT | - | 已验证次数 | 2 |
+| max_verify_count | INT | - | 最大验证次数 | 5 |
+| is_used | BOOLEAN | - | 是否已使用 | true/false |
+| created_at | DATETIME | - | 创建时间 | 2026-03-28 10:00:00 |
 
--- 登录日志（复用已有设计）
--- 见 REQ-010 登录日志
-```
+**索引**：
+- `idx_target_type` (target, type)
+- `idx_expires` (expires_at) — 便于清理过期验证码
+
+---
+
+**验证码发送记录表（code_send_logs）**
+
+| 字段 | 类型 | 必填 | 说明 | 示例 |
+|------|------|------|------|------|
+| id | BIGINT | 是 | 主键 | 2001 |
+| target | VARCHAR(100) | 是 | 邮箱/手机号 | user@example.com |
+| type | VARCHAR(20) | 是 | 验证码类型 | email_login |
+| ip_address | VARCHAR(45) | 否 | IP 地址 | 192.168.1.100 |
+| created_at | DATETIME | - | 创建时间 | 2026-03-28 10:00:00 |
+
+**索引**：
+- `idx_target_time` (target, type, created_at) — 用于频率限制
+- `idx_ip_time` (ip_address, created_at) — 用于 IP 维度频率限制
+
+> 注：登录日志复用 REQ-010 的设计
 
 **安全策略：**
 

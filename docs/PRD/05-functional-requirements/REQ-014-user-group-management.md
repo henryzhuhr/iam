@@ -121,57 +121,72 @@ POST   /api/v1/user-groups/:id/permissions    # 分配权限
 
 **数据库设计：**
 
-```sql
--- 用户组表
-CREATE TABLE user_groups (
-    id BIGINT PRIMARY KEY,
-    tenant_id BIGINT NOT NULL,
-    name VARCHAR(100) NOT NULL,
-    description VARCHAR(255),
-    parent_id BIGINT DEFAULT NULL,       -- 父组 ID
-    level INT DEFAULT 1,                 -- 层级深度
-    path VARCHAR(500),                   -- 完整路径如 /1/5/12/
-    is_system BOOLEAN DEFAULT FALSE,     -- 是否系统组
-    group_type VARCHAR(20) DEFAULT 'NORMAL', -- NORMAL/DYNAMIC
-    sort_order INT DEFAULT 0,            -- 排序号
-    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-    UNIQUE KEY uk_tenant_name (tenant_id, name),
-    INDEX idx_parent (parent_id),
-    INDEX idx_path (path(100))
-);
+**用户组表（user_groups）**
 
--- 用户组成员表
-CREATE TABLE user_group_members (
-    id BIGINT PRIMARY KEY,
-    tenant_id BIGINT NOT NULL,
-    group_id BIGINT NOT NULL,
-    user_id BIGINT NOT NULL,
-    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-    created_by BIGINT,                   -- 操作人
-    UNIQUE KEY uk_group_user (group_id, user_id),
-    INDEX idx_user (user_id)
-);
+| 字段 | 类型 | 必填 | 说明 | 示例 |
+|------|------|------|------|------|
+| id | BIGINT | 是 | 主键 | 1001 |
+| tenant_id | BIGINT | 是 | 租户 ID | 100 |
+| name | VARCHAR(100) | 是 | 用户组名称 | 研发中心 |
+| description | VARCHAR(255) | 否 | 描述 | 研发部门所有员工 |
+| parent_id | BIGINT | 否 | 父组 ID | 1 |
+| level | INT | - | 层级深度 | 2 |
+| path | VARCHAR(500) | 否 | 完整路径 | /1/5/12/ |
+| is_system | BOOLEAN | - | 是否系统组 | true/false |
+| group_type | VARCHAR(20) | - | 组类型 | NORMAL/DYNAMIC |
+| sort_order | INT | - | 排序号 | 10 |
+| created_at | DATETIME | - | 创建时间 | 2026-03-28 10:00:00 |
+| updated_at | DATETIME | - | 更新时间 | 2026-03-28 10:00:00 |
 
--- 用户组权限表
-CREATE TABLE user_group_permissions (
-    id BIGINT PRIMARY KEY,
-    group_id BIGINT NOT NULL,
-    permission_id BIGINT NOT NULL,
-    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-    UNIQUE KEY uk_group_permission (group_id, permission_id),
-    INDEX idx_group (group_id)
-);
+**索引**：
+- `uk_tenant_name` (tenant_id, name) — 唯一索引，租户内组名唯一
+- `idx_parent` (parent_id)
+- `idx_path` (path(100)) — 路径前缀索引
 
--- 用户组管理员表
-CREATE TABLE user_group_admins (
-    id BIGINT PRIMARY KEY,
-    group_id BIGINT NOT NULL,
-    user_id BIGINT NOT NULL,
-    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-    UNIQUE KEY uk_group_user (group_id, user_id)
-);
-```
+---
+
+**用户组成员表（user_group_members）**
+
+| 字段 | 类型 | 必填 | 说明 | 示例 |
+|------|------|------|------|------|
+| id | BIGINT | 是 | 主键 | 2001 |
+| tenant_id | BIGINT | 是 | 租户 ID | 100 |
+| group_id | BIGINT | 是 | 用户组 ID | 1001 |
+| user_id | BIGINT | 是 | 用户 ID | 2001 |
+| created_at | DATETIME | - | 创建时间 | 2026-03-28 10:00:00 |
+| created_by | BIGINT | 否 | 操作人 ID | 1 |
+
+**索引**：
+- `uk_group_user` (group_id, user_id) — 唯一索引，组内用户不重复
+- `idx_user` (user_id) — 按用户查询所属组
+
+---
+
+**用户组权限表（user_group_permissions）**
+
+| 字段 | 类型 | 必填 | 说明 | 示例 |
+|------|------|------|------|------|
+| id | BIGINT | 是 | 主键 | 3001 |
+| group_id | BIGINT | 是 | 用户组 ID | 1001 |
+| permission_id | BIGINT | 是 | 权限 ID | 5001 |
+| created_at | DATETIME | - | 创建时间 | 2026-03-28 10:00:00 |
+
+**索引**：
+- `uk_group_permission` (group_id, permission_id) — 唯一索引
+- `idx_group` (group_id)
+
+---
+
+**用户组管理员表（user_group_admins）**
+
+| 字段 | 类型 | 必填 | 说明 | 示例 |
+|------|------|------|------|------|
+| id | BIGINT | 是 | 主键 | 4001 |
+| group_id | BIGINT | 是 | 用户组 ID | 1001 |
+| user_id | BIGINT | 是 | 管理员用户 ID | 2001 |
+| created_at | DATETIME | - | 创建时间 | 2026-03-28 10:00:00 |
+
+**索引**：`uk_group_user` (group_id, user_id) — 唯一索引
 
 **验收标准：**
 
