@@ -16,6 +16,8 @@
 
 如需在几分钟内理解需求范围、优先级和主要风险，先阅读 [00-executive-summary.md](./00-executive-summary.md)。
 
+如需理解系统架构和工作原理，先阅读 [03-system-architecture.md](./03-system-architecture.md)。
+
 ## 产品目标
 
 | 目标类型 | 具体目标 |
@@ -42,7 +44,7 @@
 | 一页摘要 | 快速理解产品定位、范围、优先级和待澄清项 | [00-executive-summary.md](./00-executive-summary.md) |
 | 文档概述 | 目的、适用范围、名词解释、修订历史 | [01-document-overview.md](./01-document-overview.md) |
 | 产品概述 | 背景、定位、目标、技术栈、Token 方案 | [02-product-overview.md](./02-product-overview.md) |
-| 用户分析 | 用户角色、场景、租户与用户关系 | [03-user-analysis.md](./03-user-analysis.md) |
+| **系统架构** | **核心数据模型、隔离机制、认证授权流程、工作原理** | **[03-system-architecture.md](./03-system-architecture.md)** |
 | 需求总览 | 需求总表、状态、优先级、迭代计划 | [04-requirements-overview.md](./04-requirements-overview.md) |
 | 功能需求详情 | 按 `REQ` 粒度拆分的详细需求文档 | [05-functional-requirements/README.md](./05-functional-requirements/README.md) |
 | 非功能需求 | 性能、安全、可用性、多租户隔离 | [06-non-functional-requirements.md](./06-non-functional-requirements.md) |
