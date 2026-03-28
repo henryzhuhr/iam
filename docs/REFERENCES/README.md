@@ -11,14 +11,15 @@
 |  JWT  | JWT Token 结构、签名算法、最佳实践 | [jwt-basics.md](./jwt-basics.md) |
 |  MFA/TOTP  | 多因素认证与 TOTP 动态验证码原理 | [mfa-totp.md](./mfa-totp.md) |
 |  多租户架构  | SaaS 多租户数据隔离方案对比 | [multi-tenancy-architecture.md](./multi-tenancy-architecture.md) |
-|  双 Token 方案  | Access Token + Refresh Token 设计详解 | [jwt-basics.md](./jwt-basics.md) |
+|  Token 方案选型  | JWT vs Opaque Token 对比与选型依据 | [token-strategy.md](./token-strategy.md) |
 
 ## 推荐阅读顺序
 
 1. 先阅读 [权限模型](./permission-models.md)，理解 IAM 的核心设计基础
 2. 再阅读 [OAuth 2.0](./oauth-2.0-basics.md)，了解第三方登录协议
 3. 接着阅读 [JWT](./jwt-basics.md)，理解 Token 认证机制
-4. 根据需求选读 [MFA/TOTP](./mfa-totp.md) 和 [多租户架构](./multi-tenancy-architecture.md)
+4. 阅读 [Token 方案选型](./token-strategy.md)，了解 JWT vs Opaque Token 的选型依据
+5. 根据需求选读 [MFA/TOTP](./mfa-totp.md) 和 [多租户架构](./multi-tenancy-architecture.md)
 
 ## 外部参考资源
 
