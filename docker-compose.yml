@@ -1,3 +1,4 @@
+# docker compose up -d --force-recreate --build
 # docker compose down -v
 
 # https://docs.docker.com/compose/how-tos/environment-variables/envvars/#compose_project_name
@@ -23,7 +24,7 @@ services:
       APP_PORT: 8888
     volumes:
       - .:/root/iam
-      - ../iam-worktrees:/root/iam-worktrees
+      - /var/dev:/var/dev
       # 挂载 CodeX 配置目录
       - ~/.codex:/root/.codex
       # 挂载 Claude 配置文件（只读）
