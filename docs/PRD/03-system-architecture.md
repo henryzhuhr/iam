@@ -219,21 +219,34 @@ sequenceDiagram
 ```json
 {
   "header": {
-    "alg": "RS256",
-    "typ": "JWT"
+    "alg": "RS256",     // 签名算法
+    "typ": "JWT"        // Token 类型
   },
   "payload": {
-    "sub": "user-12345",
-    "tenant_id": "tenant-67890",
-    "roles": ["admin", "user"],
-    "apps": ["oa", "crm"],
-    "iat": 1711350000,
-    "exp": 1711351800,
-    "iss": "iam-system",
-    "aud": "api-gateway"
+    "sub": "user-12345",        // 用户 ID（JWT 标准字段）
+    "tenant_id": "tenant-67890",// 租户 ID（IAM 自定义）
+    "roles": ["admin", "user"], // 角色列表（IAM 自定义）
+    "apps": ["oa", "crm"],      // 可访问的应用列表（IAM 自定义）
+    "iat": 1711350000,          // 签发时间（JWT 标准字段）
+    "exp": 1711351800,          // 过期时间（JWT 标准字段）
+    "iss": "iam-system",        // 签发者（JWT 标准字段）
+    "aud": "api-gateway"        // 受众/目标服务（JWT 标准字段）
   }
 }
 ```
+
+**JWT Claim 说明：**
+
+| Claim | 类型 | 说明 |
+|-------|------|------|
+| `sub` | 标准 | 主题，IAM 中为用户 ID |
+| `iss` | 标准 | 签发者，IAM 服务标识 |
+| `aud` | 标准 | 受众，Token 适用的目标服务 |
+| `exp` | 标准 | 过期时间（Unix 时间戳） |
+| `iat` | 标准 | 签发时间（Unix 时间戳） |
+| `tenant_id` | 自定义 | 租户 ID，用于数据隔离 |
+| `roles` | 自定义 | 用户角色列表 |
+| `apps` | 自定义 | 用户可访问的应用列表 |
 
 **Token 双令牌机制：**
 
