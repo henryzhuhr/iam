@@ -47,3 +47,4 @@
 | REQ | 需求名称 | 优先级 | 文档 |
 |-----|----------|--------|------|
 | REQ-016 | API 限流和配额管理 | P1 | [REQ-016-rate-limit-quota.md](./REQ-016-rate-limit-quota.md) |
+| REQ-017 | 应用级数据隔离 | P0 | [REQ-017-application-isolation.md](./REQ-017-application-isolation.md) |

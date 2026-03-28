@@ -29,11 +29,11 @@
 
 | 优先级 | 数量 | 估时 |
 |--------|------|------|
-| P0 | 8 | 25 人天 |
+| P0 | 9 | 28 人天 |
 | P1 | 7 | 24 人天 |
 | P2 | 1 | 5 人天 |
 
-当前共 16 个需求，涵盖认证管理、用户管理、权限管理、租户管理、审计日志和系统基础六个模块。最新新增需求为 [REQ-016 API 限流和配额管理](./05-functional-requirements/REQ-016-rate-limit-quota.md)。
+当前共 17 个需求，涵盖认证管理、用户管理、权限管理、租户管理、审计日志、系统基础和应用隔离七个模块。最新新增需求为 [REQ-017 应用级数据隔离](./05-functional-requirements/REQ-017-application-isolation.md)。
 
 ## 阅读导航
 
@@ -61,5 +61,6 @@
 | 租户管理 | `REQ-007` |
 | 审计日志 | `REQ-009`、`REQ-010` |
 | 系统基础 | `REQ-016` |
+| 应用隔离 | `REQ-017` |
 
 详细文档请从 [05-functional-requirements/README.md](./05-functional-requirements/README.md) 进入。
