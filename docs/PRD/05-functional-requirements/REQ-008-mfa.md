@@ -137,38 +137,46 @@ GET    /api/v1/mfa/trusted-devices   # 可信设备列表
 
 **数据库设计：**
 
-```sql
--- MFA 绑定表（扩展 users 表或独立）
-ALTER TABLE users ADD COLUMN mfa_enabled BOOLEAN DEFAULT FALSE;
-ALTER TABLE users ADD COLUMN mfa_type VARCHAR(20);  -- totp/email/sms
-ALTER TABLE users ADD COLUMN mfa_secret VARCHAR(255);  -- 加密存储
-ALTER TABLE users ADD COLUMN mfa_backup_codes_hash VARCHAR(500);  -- 备用码哈希
+**MFA 绑定（扩展 users 表）**
 
--- 可信设备表
-CREATE TABLE mfa_trusted_devices (
-    id BIGINT PRIMARY KEY,
-    user_id BIGINT NOT NULL,
-    device_fingerprint VARCHAR(64) NOT NULL,
-    device_type VARCHAR(20),
-    ip_address VARCHAR(45),
-    expires_at DATETIME NOT NULL,
-    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-    UNIQUE KEY uk_user_device (user_id, device_fingerprint),
-    INDEX idx_expires (expires_at)
-);
+| 字段 | 类型 | 必填 | 说明 | 示例 |
+|------|------|------|------|------|
+| mfa_enabled | BOOLEAN | - | 是否启用 MFA | true/false |
+| mfa_type | VARCHAR(20) | 否 | MFA 类型 | totp/email/sms |
+| mfa_secret | VARCHAR(255) | 否 | TOTP Secret（加密存储） | 加密后的 Base32 字符串 |
+| mfa_backup_codes_hash | VARCHAR(500) | 否 | 备用码哈希 | 哈希后的备用码列表 |
 
--- MFA 操作日志
-CREATE TABLE mfa_operation_logs (
-    id BIGINT PRIMARY KEY,
-    user_id BIGINT NOT NULL,
-    action VARCHAR(50) NOT NULL,  -- bind/unbind/verify/backup_codes
-    result VARCHAR(20) NOT NULL,  -- success/failure
-    ip_address VARCHAR(45),
-    user_agent VARCHAR(255),
-    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-    INDEX idx_user_time (user_id, created_at)
-);
-```
+---
+
+**可信设备表（mfa_trusted_devices）**
+
+| 字段 | 类型 | 必填 | 说明 | 示例 |
+|------|------|------|------|------|
+| id | BIGINT | 是 | 主键 | 1001 |
+| user_id | BIGINT | 是 | 用户 ID | 2001 |
+| device_fingerprint | VARCHAR(64) | 是 | 设备指纹 | fp_xxxxxxxxxxxxx |
+| device_type | VARCHAR(20) | 否 | 设备类型 | web/ios/android |
+| ip_address | VARCHAR(45) | 否 | IP 地址 | 192.168.1.100 |
+| expires_at | DATETIME | 是 | 过期时间 | 2026-04-28 10:00:00 |
+| created_at | DATETIME | - | 创建时间 | 2026-03-28 10:00:00 |
+
+**索引**：`uk_user_device` (user_id, device_fingerprint) — 唯一索引、`idx_expires` (expires_at)
+
+---
+
+**MFA 操作日志表（mfa_operation_logs）**
+
+| 字段 | 类型 | 必填 | 说明 | 示例 |
+|------|------|------|------|------|
+| id | BIGINT | 是 | 主键 | 2001 |
+| user_id | BIGINT | 是 | 用户 ID | 2001 |
+| action | VARCHAR(50) | 是 | 操作类型 | bind/unbind/verify/backup_codes |
+| result | VARCHAR(20) | 是 | 操作结果 | success/failure |
+| ip_address | VARCHAR(45) | 否 | IP 地址 | 192.168.1.100 |
+| user_agent | VARCHAR(255) | 否 | 用户代理 | Mozilla/5.0... |
+| created_at | DATETIME | - | 创建时间 | 2026-03-28 10:00:00 |
+
+**索引**：`idx_user_time` (user_id, created_at)
 
 **验收标准：**
 

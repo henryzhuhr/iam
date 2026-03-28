@@ -113,13 +113,124 @@ sequenceDiagram
 }
 ```
 
-### 3.2 Refresh Token
+## 4. 双 Token 方案
 
-Refresh Token **不使用 JWT**，而是随机字符串：
+IAM 系统采用 **Access Token + Refresh Token** 双令牌方案。
 
-- 存储在服务端（Redis）
-- 可以主动撤销
-- 有效期较长（7-30 天）
+### 4.1 方案对比
+
+| 特性 | Access Token | Refresh Token |
+|------|--------------|---------------|
+| **用途** | API 请求认证 | 刷新 Access Token |
+| **格式** | JWT | 随机字符串（Opaque Token） |
+| **有效期** | 15-30 分钟 | 7-30 天 |
+| **存储位置** | 客户端（内存/LocalStorage） | 服务端（Redis）+ HttpOnly Cookie |
+| **撤销方式** | 加入黑名单 | 数据库删除 |
+| **刷新机制** | 过期后使用 Refresh Token 刷新 | 可主动刷新或过期 |
+
+### 4.2 为什么用双 Token
+
+**单 Token 方案的问题：**
+
+| 问题 | 说明 |
+|------|------|
+| 短期 Token | 用户体验差，需要频繁重新登录 |
+| 长期 Token | 泄露风险高，被窃取后可长期使用 |
+
+**双 Token 方案的优势：**
+
+1. **安全性**：Access Token 短期有效，泄露后影响范围有限
+2. **用户体验**：Refresh Token 长期有效，用户无感知续期
+3. **可控性**：可通过删除 Refresh Token 实现强制下线
+4. **灵活性**：支持 Token 刷新、撤销、续期等操作
+
+### 4.3 Token 流转图
+
+```mermaid
+sequenceDiagram
+    participant U as 用户
+    participant IAM as IAM 服务
+    participant Redis as Redis
+    participant API as 业务系统
+
+    U->>IAM: ① 登录请求
+    IAM->>Redis: ② 验证凭证
+    IAM-->>U: ③ 返回 Access+Refresh Token
+
+    U->>API: ④ 携带 Access Token 请求
+    API->>API: ⑤ 验证 Token（解析 + 验签）
+    API-->>U: ⑥ 返回结果
+
+    Note over U,API: Access Token 过期后
+
+    U->>IAM: ⑦ 使用 Refresh Token 刷新
+    IAM->>Redis: ⑧ 验证 Refresh Token
+    IAM-->>U: ⑨ 返回新 Access Token
+```
+
+### 4.4 安全策略
+
+| 策略 | 说明 |
+|------|------|
+| **签名算法** | 优先使用 RS256（非对称加密），支持 HS256（对称加密） |
+| **Token 加密** | 敏感信息使用 JWE 加密 |
+| **黑名单机制** | 用户登出/密码修改时，将 Token 加入 Redis 黑名单 |
+| **绑定设备** | Token 与设备指纹绑定，防止盗用 |
+| **并发控制** | 支持单设备登录/多设备登录配置 |
+| **自动续期** | Refresh Token 使用时自动续期（滑动过期） |
+
+### 4.5 代码示例
+
+#### Refresh Token 生成（Go）
+
+```go
+func GenerateRefreshToken() (string, error) {
+    // 生成 32 字节随机字符串
+    bytes := make([]byte, 32)
+    if _, err := rand.Read(bytes); err != nil {
+        return "", err
+    }
+    return base64.URLEncoding.EncodeToString(bytes), nil
+}
+```
+
+#### Token 刷新流程（Go）
+
+```go
+func RefreshAccessToken(refreshToken string) (*TokenPair, error) {
+    // 1. 验证 Refresh Token 是否在 Redis 中存在
+    userID, err := redis.Get(refreshToken).Result()
+    if err != nil {
+        return nil, fmt.Errorf("refresh token invalid")
+    }
+
+    // 2. 获取用户信息
+    user, err := getUserByID(userID)
+    if err != nil {
+        return nil, err
+    }
+
+    // 3. 生成新的 Access Token
+    accessToken, err := GenerateToken(user.ID, user.TenantID, user.Roles)
+    if err != nil {
+        return nil, err
+    }
+
+    // 4. 可选：刷新 Refresh Token（滑动过期）
+    newRefreshToken, _ := GenerateRefreshToken()
+    redis.Set(newRefreshToken, userID, 7*24*time.Hour)
+    redis.Del(refreshToken)
+
+    return &TokenPair{
+        AccessToken:  accessToken,
+        RefreshToken: newRefreshToken,
+    }, nil
+}
+```
+
+---
+
+## 6. JWT 在 IAM 中的应用
 
 ### 3.3 Token 生成代码示例（Go）
 
@@ -183,7 +294,7 @@ func ValidateToken(tokenString string) (*Claims, error) {
 
 ---
 
-## 4. JWT 安全最佳实践
+## 7. JWT 安全最佳实践
 
 ### 4.1 必须做的
 
@@ -215,7 +326,7 @@ func ValidateToken(tokenString string) (*Claims, error) {
 
 ---
 
-## 5. JWT vs 不透明 Token
+## 8. JWT vs 不透明 Token
 
 | 维度 | JWT | 不透明 Token |
 |------|-----|--------------|
@@ -230,7 +341,7 @@ IAM 选择：**JWT Access Token + 不透明 Refresh Token**
 
 ---
 
-## 6. 常见问题
+## 9. 常见问题
 
 ### Q1: JWT 如何撤销？
 
@@ -270,7 +381,7 @@ JWT 本身无法撤销，需要通过以下方式：
 
 ---
 
-## 7. 参考链接
+## 10. 参考链接
 
 - RFC 7519: https://tools.ietf.org/html/rfc7519
 - jwt.io: https://jwt.io/ （在线调试工具）
@@ -278,6 +389,6 @@ JWT 本身无法撤销，需要通过以下方式：
 
 ---
 
-## 8. 相关需求文档
+## 11. 相关需求文档
 
 - [REQ-012 Token 管理](../05-functional-requirements/REQ-012-token-management.md)

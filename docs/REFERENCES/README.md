@@ -11,6 +11,7 @@
 |  JWT  | JWT Token 结构、签名算法、最佳实践 | [jwt-basics.md](./jwt-basics.md) |
 |  MFA/TOTP  | 多因素认证与 TOTP 动态验证码原理 | [mfa-totp.md](./mfa-totp.md) |
 |  多租户架构  | SaaS 多租户数据隔离方案对比 | [multi-tenancy-architecture.md](./multi-tenancy-architecture.md) |
+|  双 Token 方案  | Access Token + Refresh Token 设计详解 | [jwt-basics.md](./jwt-basics.md) |
 
 ## 推荐阅读顺序
 

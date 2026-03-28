@@ -147,35 +147,33 @@ GET    /api/v1/audit-logs/operation-types # 获取操作类型列表
 
 **数据库设计：**
 
-```sql
--- 操作审计日志表
-CREATE TABLE operation_audit_logs (
-    id BIGINT PRIMARY KEY,
-    tenant_id BIGINT NOT NULL,
-    user_id BIGINT,
-    user_name VARCHAR(100),
-    operation_type VARCHAR(50) NOT NULL,
-    resource_type VARCHAR(50),
-    resource_id BIGINT,
-    resource_name VARCHAR(255),
-    action VARCHAR(50),
-    request_body JSON,
-    response_status VARCHAR(20) NOT NULL,
-    error_message TEXT,
-    ip_address VARCHAR(45),
-    user_agent VARCHAR(500),
-    device_info VARCHAR(100),
-    location VARCHAR(100),
-    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-    INDEX idx_tenant_time (tenant_id, created_at),
-    INDEX idx_user (tenant_id, user_id, created_at),
-    INDEX idx_operation (tenant_id, operation_type, created_at),
-    INDEX idx_resource (tenant_id, resource_type, resource_id)
-);
+**操作审计日志表（operation_audit_logs）**
 
--- 按时间分区（可选，大数据量场景）
--- PARTITION BY RANGE (TO_DAYS(created_at))
-```
+| 字段 | 类型 | 必填 | 说明 | 示例 |
+|------|------|------|------|------|
+| id | BIGINT | 是 | 主键 | 1001 |
+| tenant_id | BIGINT | 是 | 租户 ID | 100 |
+| user_id | BIGINT | 否 | 操作人 ID | 2001 |
+| user_name | VARCHAR(100) | 否 | 操作人姓名 | 张三 |
+| operation_type | VARCHAR(50) | 是 | 操作类型 | USER_CREATE/ROLE_ASSIGN |
+| resource_type | VARCHAR(50) | 否 | 资源类型 | USER/ROLE/TENANT |
+| resource_id | BIGINT | 否 | 资源 ID | 2002 |
+| resource_name | VARCHAR(255) | 否 | 资源名称 | 李四 |
+| action | VARCHAR(50) | 否 | 具体动作 | CREATE/UPDATE/DELETE |
+| request_body | JSON | 否 | 请求参数（脱敏） | {"email": "li***@example.com"} |
+| response_status | VARCHAR(20) | 是 | 响应状态 | SUCCESS/FAILURE |
+| error_message | TEXT | 否 | 错误信息 | 失败时的错误消息 |
+| ip_address | VARCHAR(45) | 否 | 操作 IP | 192.168.1.100 |
+| user_agent | VARCHAR(500) | 否 | 用户代理 | Mozilla/5.0... |
+| device_info | VARCHAR(100) | 否 | 设备信息 | Chrome 120 / macOS |
+| location | VARCHAR(100) | 否 | 地理位置 | 北京市海淀区 |
+| created_at | DATETIME | - | 操作时间 | 2026-03-25 10:30:00 |
+
+**索引**：
+- `idx_tenant_time` (tenant_id, created_at) — 租户 + 时间查询
+- `idx_user` (tenant_id, user_id, created_at) — 按用户查询
+- `idx_operation` (tenant_id, operation_type, created_at) — 按操作类型查询
+- `idx_resource` (tenant_id, resource_type, resource_id) — 按资源查询
 
 **验收标准：**
 

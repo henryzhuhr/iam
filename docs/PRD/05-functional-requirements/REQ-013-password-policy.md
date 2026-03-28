@@ -119,37 +119,45 @@ POST   /api/v1/auth/password/unlock      # 申请解锁（邮箱验证）
 
 **数据库设计：**
 
-```sql
--- 用户密码历史表
-CREATE TABLE user_password_history (
-    id BIGINT PRIMARY KEY,
-    user_id BIGINT NOT NULL,
-    password_hash VARCHAR(255) NOT NULL,
-    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-    INDEX idx_user (user_id, created_at)
-);
+**用户密码历史表（user_password_history）**
 
--- 密码错误尝试记录（用于锁定）
-CREATE TABLE password_login_attempts (
-    id BIGINT PRIMARY KEY,
-    user_id BIGINT NOT NULL,
-    attempt_time DATETIME NOT NULL,
-    ip_address VARCHAR(45),
-    success BOOLEAN DEFAULT FALSE,
-    INDEX idx_user_time (user_id, attempt_time)
-);
+| 字段 | 类型 | 必填 | 说明 | 示例 |
+|------|------|------|------|------|
+| id | BIGINT | 是 | 主键 | 1001 |
+| user_id | BIGINT | 是 | 用户 ID | 2001 |
+| password_hash | VARCHAR(255) | 是 | 密码哈希（bcrypt/argon2） | $2a$10$xxxx... |
+| created_at | DATETIME | - | 创建时间 | 2026-03-28 10:00:00 |
 
--- 密码重置验证码表
-CREATE TABLE password_reset_codes (
-    id BIGINT PRIMARY KEY,
-    user_id BIGINT NOT NULL,
-    code VARCHAR(6) NOT NULL,
-    expires_at DATETIME NOT NULL,
-    used BOOLEAN DEFAULT FALSE,
-    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-    INDEX idx_user_code (user_id, code)
-);
-```
+**索引**：`idx_user` (user_id, created_at)
+
+---
+
+**密码错误尝试记录表（password_login_attempts）**
+
+| 字段 | 类型 | 必填 | 说明 | 示例 |
+|------|------|------|------|------|
+| id | BIGINT | 是 | 主键 | 2001 |
+| user_id | BIGINT | 是 | 用户 ID | 2001 |
+| attempt_time | DATETIME | 是 | 尝试时间 | 2026-03-28 10:00:00 |
+| ip_address | VARCHAR(45) | 否 | IP 地址 | 192.168.1.100 |
+| success | BOOLEAN | - | 是否成功 | true/false |
+
+**索引**：`idx_user_time` (user_id, attempt_time)
+
+---
+
+**密码重置验证码表（password_reset_codes）**
+
+| 字段 | 类型 | 必填 | 说明 | 示例 |
+|------|------|------|------|------|
+| id | BIGINT | 是 | 主键 | 3001 |
+| user_id | BIGINT | 是 | 用户 ID | 2001 |
+| code | VARCHAR(6) | 是 | 验证码 | 123456 |
+| expires_at | DATETIME | 是 | 过期时间 | 2026-03-28 10:15:00 |
+| used | BOOLEAN | - | 是否已使用 | true/false |
+| created_at | DATETIME | - | 创建时间 | 2026-03-28 10:00:00 |
+
+**索引**：`idx_user_code` (user_id, code)
 
 **安全策略：**
 

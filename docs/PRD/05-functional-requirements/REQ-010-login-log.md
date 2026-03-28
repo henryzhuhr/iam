@@ -186,51 +186,55 @@ DELETE /api/v1/my/sessions/all           # 登出所有会话
 
 **数据库设计：**
 
-```sql
--- 登录日志表
-CREATE TABLE login_logs (
-    id BIGINT PRIMARY KEY,
-    tenant_id BIGINT NOT NULL,
-    user_id BIGINT,
-    username VARCHAR(100),
-    result VARCHAR(20) NOT NULL,
-    failure_reason VARCHAR(50),
-    ip_address VARCHAR(45),
-    location VARCHAR(100),
-    country VARCHAR(50),
-    province VARCHAR(50),
-    city VARCHAR(50),
-    isp VARCHAR(50),
-    device_type VARCHAR(20),
-    os VARCHAR(50),
-    browser VARCHAR(50),
-    user_agent VARCHAR(500),
-    is_new_device BOOLEAN DEFAULT FALSE,
-    is_new_location BOOLEAN DEFAULT FALSE,
-    risk_score INT DEFAULT 0,
-    session_id VARCHAR(64),
-    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-    INDEX idx_tenant_time (tenant_id, created_at),
-    INDEX idx_user_time (tenant_id, user_id, created_at),
-    INDEX idx_result (tenant_id, result, created_at),
-    INDEX idx_ip (tenant_id, ip_address, created_at)
-);
+**登录日志表（login_logs）**
 
--- 登录告警记录表
-CREATE TABLE login_alerts (
-    id BIGINT PRIMARY KEY,
-    tenant_id BIGINT NOT NULL,
-    user_id BIGINT NOT NULL,
-    alert_type VARCHAR(50) NOT NULL,
-    risk_level VARCHAR(20) NOT NULL,
-    login_log_id BIGINT,
-    is_sent BOOLEAN DEFAULT FALSE,
-    sent_at DATETIME,
-    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-    INDEX idx_tenant_time (tenant_id, created_at),
-    INDEX idx_user (tenant_id, user_id, is_sent)
-);
-```
+| 字段 | 类型 | 必填 | 说明 | 示例 |
+|------|------|------|------|------|
+| id | BIGINT | 是 | 主键 | 1001 |
+| tenant_id | BIGINT | 是 | 租户 ID | 100 |
+| user_id | BIGINT | 否 | 用户 ID（失败时为空） | 2001 |
+| username | VARCHAR(100) | 否 | 尝试登录的用户名 | zhangsan@example.com |
+| result | VARCHAR(20) | 是 | 登录结果 | SUCCESS/FAILURE |
+| failure_reason | VARCHAR(50) | 否 | 失败原因 | INVALID_PASSWORD/ACCOUNT_LOCKED |
+| ip_address | VARCHAR(45) | 否 | 登录 IP | 192.168.1.100 |
+| location | VARCHAR(100) | 否 | 地理位置 | 北京市海淀区 |
+| country | VARCHAR(50) | 否 | 国家 | 中国 |
+| province | VARCHAR(50) | 否 | 省份 | 北京市 |
+| city | VARCHAR(50) | 否 | 城市 | 北京市 |
+| isp | VARCHAR(50) | 否 | 运营商 | 中国电信 |
+| device_type | VARCHAR(20) | 否 | 设备类型 | DESKTOP/MOBILE/TABLET |
+| os | VARCHAR(50) | 否 | 操作系统 | macOS 14.0 |
+| browser | VARCHAR(50) | 否 | 浏览器 | Chrome 120.0 |
+| user_agent | VARCHAR(500) | 否 | 原始 User-Agent | Mozilla/5.0... |
+| is_new_device | BOOLEAN | - | 是否新设备 | true/false |
+| is_new_location | BOOLEAN | - | 是否新地点 | true/false |
+| risk_score | INT | - | 风险评分 | 0-100 |
+| session_id | VARCHAR(64) | 否 | 会话 ID | sess_xxxxxxxxx |
+| created_at | DATETIME | - | 登录时间 | 2026-03-25 10:30:00 |
+
+**索引**：
+- `idx_tenant_time` (tenant_id, created_at)
+- `idx_user_time` (tenant_id, user_id, created_at)
+- `idx_result` (tenant_id, result, created_at)
+- `idx_ip` (tenant_id, ip_address, created_at)
+
+---
+
+**登录告警记录表（login_alerts）**
+
+| 字段 | 类型 | 必填 | 说明 | 示例 |
+|------|------|------|------|------|
+| id | BIGINT | 是 | 主键 | 2001 |
+| tenant_id | BIGINT | 是 | 租户 ID | 100 |
+| user_id | BIGINT | 是 | 用户 ID | 2001 |
+| alert_type | VARCHAR(50) | 是 | 告警类型 | HIGH_RISK_LOGIN/FREQUENT_FAILURE |
+| risk_level | VARCHAR(20) | 是 | 风险等级 | LOW/MEDIUM/HIGH |
+| login_log_id | BIGINT | 否 | 关联登录日志 ID | 1001 |
+| is_sent | BOOLEAN | - | 是否已发送 | true/false |
+| sent_at | DATETIME | 否 | 发送时间 | 2026-03-25 10:35:00 |
+| created_at | DATETIME | - | 创建时间 | 2026-03-25 10:30:00 |
+
+**索引**：`idx_tenant` (tenant_id, created_at)、`idx_user` (tenant_id, user_id, is_sent)
 
 **验收标准：**
 

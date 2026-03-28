@@ -106,34 +106,36 @@ DELETE /api/v1/auth/sessions/:id # 撤销指定会话
 
 **数据库设计：**
 
-```sql
--- Token 黑名单表
-CREATE TABLE token_blacklist (
-    id BIGINT PRIMARY KEY,
-    jti VARCHAR(64) NOT NULL,      -- Token 唯一标识
-    user_id BIGINT NOT NULL,       -- 用户 ID
-    expire_at DATETIME NOT NULL,   -- 过期时间
-    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-    INDEX idx_jti (jti),
-    INDEX idx_expire (expire_at)   -- 便于定时清理
-);
+**Token 黑名单表（token_blacklist）**
 
--- 活跃会话表（可选，用于管理多设备）
-CREATE TABLE active_sessions (
-    id BIGINT PRIMARY KEY,
-    user_id BIGINT NOT NULL,
-    refresh_token_hash VARCHAR(64) NOT NULL,
-    device_type VARCHAR(20),       -- web/ios/android
-    device_fingerprint VARCHAR(64),
-    ip_address VARCHAR(45),
-    user_agent VARCHAR(255),
-    last_active_at DATETIME,
-    expires_at DATETIME,
-    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-    INDEX idx_user (user_id),
-    INDEX idx_refresh (refresh_token_hash)
-);
-```
+| 字段 | 类型 | 必填 | 说明 | 示例 |
+|------|------|------|------|------|
+| id | BIGINT | 是 | 主键 | 1001 |
+| jti | VARCHAR(64) | 是 | Token 唯一标识 | at_xxxxxxxxxxxxx |
+| user_id | BIGINT | 是 | 用户 ID | 2001 |
+| expire_at | DATETIME | 是 | 过期时间 | 2026-03-28 11:00:00 |
+| created_at | DATETIME | - | 创建时间 | 2026-03-28 10:30:00 |
+
+**索引**：`idx_jti` (jti)、`idx_expire` (expire_at) — 便于定时清理
+
+---
+
+**活跃会话表（active_sessions）**
+
+| 字段 | 类型 | 必填 | 说明 | 示例 |
+|------|------|------|------|------|
+| id | BIGINT | 是 | 主键 | 3001 |
+| user_id | BIGINT | 是 | 用户 ID | 2001 |
+| refresh_token_hash | VARCHAR(64) | 是 | Refresh Token 哈希 | hash_xxxxxxxxxxxxx |
+| device_type | VARCHAR(20) | 否 | 设备类型 | web/ios/android |
+| device_fingerprint | VARCHAR(64) | 否 | 设备指纹 | fp_xxxxxxxxxxxxx |
+| ip_address | VARCHAR(45) | 否 | IP 地址 | 192.168.1.100 |
+| user_agent | VARCHAR(255) | 否 | 用户代理 | Mozilla/5.0... |
+| last_active_at | DATETIME | 否 | 最后活跃时间 | 2026-03-28 10:30:00 |
+| expires_at | DATETIME | 否 | 过期时间 | 2026-04-04 10:30:00 |
+| created_at | DATETIME | - | 创建时间 | 2026-03-28 10:30:00 |
+
+**索引**：`idx_user` (user_id)、`idx_refresh` (refresh_token_hash)
 
 **验收标准：**
 
