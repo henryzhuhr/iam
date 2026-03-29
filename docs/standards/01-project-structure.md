@@ -1,6 +1,9 @@
-# 项目规范
+# 项目结构规范
 
-本文档用于维护 IAM 项目的开发约定、目录规范和常用流程。`AGENTS.md` 仅保留文档索引和最基本原则，具体规范以下文为准。
+> 最后更新：2026-03-29
+> 适用范围：IAM 项目
+
+---
 
 ## 1. 项目概述
 
@@ -8,14 +11,16 @@ IAM (身份认证与访问管理 / Identity and Access Management) 是一个以 
 
 ## 2. 技术栈
 
-- **Golang**: 主要应用逻辑、API 服务器和业务逻辑
-- **Python**: 业务接口测试，使用 `uv` 作为包管理器和运行环境
-- 后端微服务框架：go-zero
-- 数据库：MySQL
-- 缓存：Redis
-- 消息队列：Kafka
-- 配置管理：YAML
-- 容器化：Docker 和 Docker Compose
+| 技术 | 用途 |
+|------|------|
+| **Golang** | 主要应用逻辑、API 服务器和业务逻辑 |
+| **Python** | 业务接口测试，使用 `uv` 作为包管理器和运行环境 |
+| **go-zero** | 后端微服务框架 |
+| **MySQL** | 数据库 |
+| **Redis** | 缓存 |
+| **Kafka** | 消息队列 |
+| **YAML** | 配置管理 |
+| **Docker/Docker Compose** | 容器化 |
 
 ## 3. 项目结构
 
@@ -49,17 +54,9 @@ iam/
 └── README.md               # 项目说明
 ```
 
-## 4. 开发命令
+## 4. internal/ 分层约定
 
-```bash
-go run app/main.go -f etc/dev.yaml
-```
-
-## 5. 编码规范
-
-### 5.1 `internal/` 分层约定
-
-`internal/` 目录采用标准分层架构，每个目录有明确职责：
+`internal/` 目录采用标准分层架构：
 
 ```bash
 internal/
@@ -91,19 +88,36 @@ internal/
     └── servicecontext.go  # ServiceContext，包含所有依赖
 ```
 
-### 5.2 新增标准接口的开发流程
+## 5. 开发命令
 
-1. 定义 DTO：在 `internal/dto/<module>/` 中定义请求和响应结构。
-2. 实现 Service：在 `internal/service/<module>/` 中实现核心业务逻辑，通过 `svcCtx` 访问依赖。
-3. 实现 Handler：在 `internal/handler/<module>/` 中接收请求、校验参数、调用 Service，并返回 JSON 响应。
-4. 注册路由：在 `internal/routes/<module>/` 中定义路由，并在 `internal/routes/routes.go` 注册。
-5. 编写 Swagger 文档：在 `internal/routes/<module>/<module>.swagger.yaml` 中维护接口路径、参数和请求/响应 Schema。
+```bash
+# 启动服务
+go run app/main.go -f etc/dev.yaml
+```
 
-## 6. Issues 规范
+## 6. 新增标准接口的开发流程
 
-### 6.1 目录和文件命名规范
+1. **定义 DTO**：在 `internal/dto/<module>/` 中定义请求和响应结构。
+2. **实现 Service**：在 `internal/service/<module>/` 中实现核心业务逻辑，通过 `svcCtx` 访问依赖。
+3. **实现 Handler**：在 `internal/handler/<module>/` 中接收请求、校验参数、调用 Service，并返回 JSON 响应。
+4. **注册路由**：在 `internal/routes/<module>/` 中定义路由，并在 `internal/routes/routes.go` 注册。
+5. **编写 Swagger 文档**：在 `internal/routes/<module>/<module>.swagger.yaml` 中维护接口路径、参数和请求/响应 Schema。
+
+## 7. Issues 规范
+
+### 7.1 目录和文件命名规范
 
 - 整个项目统一使用名为 `issues/` 的目录记录 issue，不限定于 skill。
 - issue 文件名使用三位递增编号开头，格式为 `NNN-short-kebab-case.md`，例如 `001-path-name-collision.md`。
 - 新 issue 必须延续当前最大编号，不能跳号，也不要重用已有编号。
 - 新增 issue 时，需要同步在对应层级的 `README.md` 中维护 index，方便按编号查阅。
+
+## 8. 相关规范
+
+| 规范 | 说明 | 文档 |
+|------|------|------|
+| Go 编码规范 | Go 语言编码风格、命名约定、注释规范 | [02-go-coding-style.md](./02-go-coding-style.md) |
+| Git 工作流规范 | 分支策略、提交规范、Code Review | [03-git-workflow.md](./03-git-workflow.md) |
+| 术语表 | 项目统一术语和定义 | [04-glossary.md](./04-glossary.md) |
+| API 设计规范 | RESTful API 设计规范、错误码规范 | [05-api-design.md](./05-api-design.md) |
+| 数据库设计规范 | 表结构设计、索引、命名规范 | [06-database-design.md](./06-database-design.md) |
