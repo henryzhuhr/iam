@@ -4,13 +4,13 @@
 
 ## 文档入口
 
-| 文档分类 | 说明 | 入口 |
-|----------|------|------|
-| **PRD** | 产品需求文档，按主题和 `REQ` 粒度拆分维护 | [PRD/README.md](./PRD/README.md) |
-| **standards/** | 项目规范，包含项目结构、编码规范、Git 工作流、术语表、API/数据库设计规范 | [standards/README.md](./standards/README.md) |
-| **references/** | 参考资料，收录 OAuth、OIDC、JWT、MFA、RBAC、OWASP 等技术概念说明 | [references/README.md](./references/README.md) |
-| **issues/** | Issue 跟踪目录，记录项目开发过程中的所有 Issue | [issues/README.md](./issues/README.md) |
-| **TDD** | 技术设计文档，开发视角的架构与实现设计 | **[待设计]** |
+| 文档分类 | 说明 | 维护角色 | 入口 |
+|----------|------|----------|------|
+| **PRD** | 产品需求文档，按主题和 `REQ` 粒度拆分维护 | 产品经理 | [PRD/README.md](./PRD/README.md) |
+| **standards/** | 项目规范，包含项目结构、编码规范、Git 工作流、术语表、API/数据库设计规范 | 研发团队 | [standards/README.md](./standards/README.md) |
+| **references/** | 参考资料，收录 OAuth、OIDC、JWT、MFA、RBAC、OWASP 等技术概念说明 | 研发团队 | [references/README.md](./references/README.md) |
+| **issues/** | Issue 跟踪目录，记录项目开发过程中的所有 Issue | 全体研发 | [issues/README.md](./issues/README.md) |
+| **TDD** | 技术设计文档，开发视角的架构与实现设计 | 研发团队 | **[待设计]** |
 
 查看各目录的 `README.md` 获取详细文档列表：
 
