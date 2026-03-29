@@ -14,7 +14,13 @@
 
 ## 资料清单
 
-## 认证管理
+### 项目管理
+
+| 主题 | 说明 | 文档 |
+|------|------|------|
+| 文档体系框架 | 软件项目管理全流程文档清单，8 个阶段 40 类文档详解 | [documentation-framework.md](./documentation-framework.md) |
+
+### 认证管理
 
 | 主题 | 说明 | 文档 |
 |------|------|------|
@@ -46,10 +52,11 @@
 
 ### 入门路径（必读）
 
-1. [权限模型](./permission-models.md) - 理解 IAM 的核心设计基础
-2. [OAuth 2.0](./oauth-2.0-basics.md) - 了解第三方登录协议
-3. [JWT](./jwt-basics.md) - 理解 Token 认证机制
-4. [Token 方案选型](./token-strategy.md) - 了解 JWT vs Opaque Token 的选型依据
+1. [文档体系框架](./documentation-framework.md) - 了解软件项目全流程文档体系
+2. [权限模型](./permission-models.md) - 理解 IAM 的核心设计基础
+3. [OAuth 2.0](./oauth-2.0-basics.md) - 了解第三方登录协议
+4. [JWT](./jwt-basics.md) - 理解 Token 认证机制
+5. [Token 方案选型](./token-strategy.md) - 了解 JWT vs Opaque Token 的选型依据
 
 ### 认证管理进阶
 
