@@ -49,6 +49,8 @@ docs/
 │   └── 10-appendix-user-stories.md
 ├── TDD/                      # 技术设计文档目录 [待设计]
 │   └── README.md             # 待创建
+├── issues/                   # Issue 跟踪目录
+│   └── README.md             # Issue 索引
 └── references/               # 技术资料参考
     └── README.md
 ```
@@ -61,3 +63,12 @@ docs/
 - 项目结构、技术栈、编码规范、issue 规范等研发约定，统一维护在 `standards/` 目录。
 - 技术概念、协议标准、设计方案等参考资料，收录到 `references/` 目录。
 - **技术设计文档 (TDD)** - 开发视角的架构与实现设计，待创建。
+
+## Issues
+
+### 目录和文件命名规范
+
+- 整个项目统一使用名为 `issues/` 的目录记录 issue，不限定于 skill。
+- issue 文件名使用三位递增编号开头，格式为 `NNN-short-kebab-case.md`，例如 `001-path-name-collision.md`。
+- 新 issue 必须延续当前最大编号，不能跳号，也不要重用已有编号。
+- 新增 issue 时，需要同步在对应层级的 `README.md` 中维护 index，方便按编号查阅。
