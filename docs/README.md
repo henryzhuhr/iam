@@ -8,6 +8,7 @@
 |------|------|------|
 | PRD 一页摘要 | 几分钟内理解需求范围、优先级和主要风险 | [PRD/00-executive-summary.md](./PRD/00-executive-summary.md) |
 | PRD | 产品需求文档 (product requirement document)，按主题和 `REQ` 粒度拆分维护 | [PRD/README.md](./PRD/README.md) |
+| TDD | 技术设计文档 (technical design document)，开发视角的架构与实现设计 | **[待设计]** |
 | 项目规范 | 项目结构、技术栈、编码约定、Issue 规范等研发约定 | [project-conventions.md](./project-conventions.md) |
 | REFERENCES | 参考资料，收录 OAuth、权限模型、JWT、MFA、多租户架构等技术概念说明 | [references/README.md](./references/README.md) |
 
@@ -17,6 +18,9 @@
 2. 再阅读 [PRD/README.md](./PRD/README.md)，查看完整 PRD 结构、模块导航和需求入口。
 3. 如需了解项目结构、编码约定和 issue 规范，请阅读 [project-conventions.md](./project-conventions.md)。
 4. 技术概念查阅请参考 [references/README.md](./references/README.md)。
+
+**待补充：**
+- 技术设计文档 (TDD) - 开发视角的架构与实现设计
 
 ## 当前结构
 
@@ -37,12 +41,10 @@ docs/
 │   ├── 08-risks-and-dependencies.md
 │   ├── 09-success-metrics.md
 │   └── 10-appendix-user-stories.md
+├── TDD/                    # 技术设计文档目录 [待设计]
+│   └── README.md           # 待创建
 └── references/             # 技术资料参考
-    ├── README.md
-    ├── oauth-2.0-basics.md
-    ├── permission-models.md
-    ├── jwt-basics.md
-    └── mfa-totp.md
+    └── README.md
 ```
 
 ## 维护约定
@@ -52,3 +54,4 @@ docs/
 - 偏接口、数据结构、实现约束的补充内容，优先更新对应 PRD 文档或系统架构文档。
 - 项目结构、技术栈、编码规范、issue 规范等研发约定，统一维护在 `project-conventions.md`。
 - 技术概念、协议标准、设计方案等参考资料，收录到 `references/` 目录。
+- **技术设计文档 (TDD)** - 开发视角的架构与实现设计，待创建。
