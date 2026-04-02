@@ -1,8 +1,10 @@
 ---
 name: git-worktree-helper
 description: 检查、创建和管理 Git worktree（工作树），用于并行分支开发。适用于需要按本地分支模式批量创建 worktree、把 worktree 放到仓库同级目录、避免为已在其他目录检出的分支重复创建 worktree、核对分支与 worktree 路径映射，或在多个分支上修改前先准备隔离工作区的场景。
+description: 检查、创建和管理 Git worktree（工作树），用于并行分支开发。适用于需要按本地分支模式批量创建 worktree、把 worktree 放到仓库同级目录、避免为已在其他目录检出的分支重复创建 worktree、核对分支与 worktree 路径映射，或在多个分支上修改前先准备隔离工作区的场景。
 ---
 
+# 🌳 Git Worktree Helper
 # 🌳 Git Worktree Helper
 
 用这个 skill 以安全、可重复的方式管理本地 Git worktree。
@@ -71,6 +73,7 @@ description: 检查、创建和管理 Git worktree（工作树），用于并行
 ```
 
 > 默认使用 `_` 替代 `/`，以降低与原分支名中连字符 `-` 混用时的路径碰撞风险。
+> 默认使用 `_` 替代 `/`，以降低与原分支名中连字符 `-` 混用时的路径碰撞风险。
 
 路径映射示例：
 
@@ -86,8 +89,9 @@ description: 检查、创建和管理 Git worktree（工作树），用于并行
 
 - 批量创建时，先列出命中的本地分支，再逐个推导目标路径，形成明确的创建计划。
 - 当范围超过一个分支时，先用自然语言汇总计划，至少说明命中的分支、对应路径、哪些分支会被跳过。
-- 确认计划后，再逐个运行 `git worktree add <path> <branch>` 正式执行。
-- 如果只缺一个分支，直接使用 `git worktree add <path> <branch>` 即可。
+- 创建的时候必须使用相对路径（相对于当前 Git 仓库路径），例如 `git worktree add .worktrees/feature_name feature_name`，而不是使用绝对路径。
+- 确认计划后，再逐个运行 `git worktree add <relative_path> <branch>` 正式执行。
+- 如果只缺一个分支，直接使用 `git worktree add <relative_path> <branch>` 即可。
 
 示例：
 
