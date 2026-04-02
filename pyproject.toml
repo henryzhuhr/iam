@@ -8,9 +8,22 @@ dependencies = []
 
 [dependency-groups]
 dev = [
+    "httpx>=0.27.0",
     "ruff>=0.5.0",
     "pytest>=8.0.0",
 ]
+
+[tool.pytest.ini_options]
+addopts = "-ra"
+testpaths = ["tests"]
+markers = [
+    "api: black-box HTTP API tests.",
+    "smoke: fast availability checks for core endpoints.",
+    "contract: contract-oriented checks reserved for spec alignment work.",
+]
+
+[tool.ruff.lint]
+extend-select = ["I"]
 
 [[tool.uv.index]]
 url = "https://mirrors.cloud.tencent.com/pypi/simple/"
