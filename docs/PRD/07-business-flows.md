@@ -25,7 +25,20 @@ flowchart LR
     E --> F[权限生效]
 ```
 
-## 7.3 租户开通流程
+## 7.3 内部服务认证流程
+
+```mermaid
+flowchart LR
+    A[内部系统启动] --> B[携带 AK/SK 请求 Token]
+    B --> C{客户端凭证有效?}
+    C -->|否| D[拒绝并记录审计]
+    C -->|是| E{Scope 是否允许?}
+    E -->|否| F[返回权限不足]
+    E -->|是| G[签发短期 JWT]
+    G --> H[调用业务 API]
+```
+
+## 7.4 租户开通流程
 
 ```mermaid
 flowchart LR

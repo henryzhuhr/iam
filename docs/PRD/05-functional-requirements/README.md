@@ -2,7 +2,7 @@
 
 本目录按 `REQ` 粒度拆分功能需求，便于单需求设计、开发、测试和评审。模块分组仅用于导航，具体优先级、估时和验收标准以各需求文档为准。
 
-## 认证管理
+## 统一认证
 
 | REQ | 需求名称 | 优先级 | 文档 |
 |-----|----------|--------|------|
@@ -14,6 +14,7 @@
 | REQ-012 | Token 管理 | P0 | [REQ-012-token-management.md](./REQ-012-token-management.md) |
 | REQ-013 | 密码策略管理 | P1 | [REQ-013-password-policy.md](./REQ-013-password-policy.md) |
 | REQ-015 | 验证码登录 | P1 | [REQ-015-code-login.md](./REQ-015-code-login.md) |
+| REQ-018 | 内部服务认证 | P0 | [REQ-018-internal-service-authentication.md](./REQ-018-internal-service-authentication.md) |
 
 ## 用户管理
 

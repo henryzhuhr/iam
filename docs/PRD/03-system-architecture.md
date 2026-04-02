@@ -7,7 +7,7 @@
 
 ## 3.1 系统定位
 
-IAM（Identity and Access Management）是一个面向 SaaS 多租户场景的身份认证与访问管理系统，作为企业级基础设施为业务系统提供统一的身份认证和权限管理能力。
+IAM（Identity and Access Management）是一个面向 SaaS 多租户场景的身份认证与访问管理系统，作为企业级基础设施为业务系统提供统一的身份认证、内部服务认证和权限管理能力。
 
 ```mermaid
 flowchart TB
@@ -55,7 +55,7 @@ flowchart TB
   - IAM SDK：封装认证、用户、权限等 API，支持多语言
 
 - **IAM 服务层**：IAM 核心服务模块
-  - 认证服务：用户登录、注册、Token 生成与验证
+  - 认证服务：用户登录、注册、内部客户端认证、Token 生成与验证
   - 用户服务：用户 CRUD、状态管理、批量导入导出
   - 权限服务：RBAC 模型、角色管理、权限分配
   - 租户服务：租户管理、配额管理、多租户隔离
@@ -71,25 +71,29 @@ flowchart TB
 
 ## 3.2 核心数据模型
 
-IAM 系统采用 **平台 - 租户 - 应用 - 用户** 四层模型，其中租户是数据隔离的基本边界，应用是授权和审计的基本单位。
+IAM 系统采用两套互补模型：业务隔离采用 **平台 - 租户 - 应用 - 用户** 四层模型，内部服务认证采用平台级 `Client` 模型。租户是数据隔离的基本边界，应用是授权和审计的基本单位，客户端是平台内部系统的认证主体。
 
 ### 3.2.1 模型总览
 
 ```mermaid
 flowchart TB
     Platform[平台 Platform] --> Tenant[租户 Tenant]
+    Platform --> Client[客户端 Client]
     Tenant --> App[应用 Application]
     Tenant --> User[用户 User]
     User -.-> Auth[应用授权]
     App -.-> Auth
     User --> Role[角色 Role]
+    Client --> Scope[Scope]
     Role --> Perm[权限 Permission]
 
     style Platform fill:#e1f5ff
     style Tenant fill:#e1f5ff
     style User fill:#e1f5ff
+    style Client fill:#f3e5f5
     style App fill:#fff4e1
     style Auth fill:#fff4e1
+    style Scope fill:#f3e5f5
     style Role fill:#e8f5e9
     style Perm fill:#e8f5e9
 ```
@@ -99,6 +103,7 @@ flowchart TB
 | 实体 | 说明 | 关键属性 |
 |------|------|----------|
 | **平台 (Platform)** | IAM 系统运营方，管理所有租户 | 平台管理员、全局配置 |
+| **客户端 (Client)** | 平台统一注册的内部系统身份，用于机器对机器认证 | client_id、access_key、allowed_scopes、状态 |
 | **租户 (Tenant)** | SaaS 平台中独立的企业客户，数据隔离的基本单位 | tenant_id、名称、状态、配额 |
 | **应用 (Application)** | 租户下的业务系统，如 OA（办公自动化）、CRM（客户关系管理）、ERP（企业资源计划）等 | app_id、app_code、名称、状态 |
 | **用户 (User)** | 属于某个租户的具体个人，可被授权访问一个或多个应用 | user_id、邮箱、角色列表 |
@@ -110,9 +115,11 @@ flowchart TB
 | 关系 | 类型 | 说明 |
 |------|------|------|
 | 平台 → 租户 | 1:N | 一个平台管理多个租户 |
+| 平台 → 客户端 | 1:N | 一个平台可管理多个内部客户端 |
 | 租户 → 应用 | 1:N | 一个租户下可以有多个应用 |
 | 租户 → 用户 | 1:N | 一个租户下可以有多个用户 |
 | 用户 → 应用 | M:N | 一个用户可以访问多个应用，一个应用可被多个用户访问 |
+| 客户端 → Scope | M:N | 一个客户端可被授予多个机器权限范围 |
 | 用户 → 角色 | M:N | 一个用户可以有多个角色，一个角色可以被多个用户拥有 |
 | 角色 → 权限 | M:N | 一个角色可以有多个权限，一个权限可以属于多个角色 |
 
@@ -212,7 +219,28 @@ sequenceDiagram
     end
 ```
 
-### 3.4.3 Token 结构与流转
+### 3.4.3 认证流程（内部服务）
+
+```mermaid
+sequenceDiagram
+    participant C as 内部客户端
+    participant IAM as IAM 服务
+    participant DB as MySQL
+    participant GW as API 网关
+
+    C->>IAM: 1. 提交 AK/SK 和 grant_type=client_credentials
+    IAM->>DB: 2. 校验客户端状态和密钥
+    DB-->>IAM: 3. 验证通过
+    IAM->>IAM: 4. 计算允许的 scopes
+    IAM-->>C: 5. 返回短期 JWT Access Token
+
+    C->>GW: 6. 携带 Bearer Token 调用 API
+    GW->>GW: 7. 验证签名、过期时间、subject_type=client
+    GW->>GW: 8. 校验 scopes
+    GW-->>C: 9. 返回结果
+```
+
+### 3.4.4 Token 结构与流转
 
 **JWT Access Token 结构：**
 
@@ -223,7 +251,8 @@ sequenceDiagram
     "typ": "JWT"        // Token 类型
   },
   "payload": {
-    "sub": "user-12345",        // 用户 ID（JWT 标准字段）
+    "sub": "user-12345",        // 主体 ID（JWT 标准字段）
+    "subject_type": "user",     // 主体类型（IAM 自定义）
     "tenant_id": "tenant-67890",// 租户 ID（IAM 自定义）
     "roles": ["admin", "user"], // 角色列表（IAM 自定义）
     "apps": ["oa", "crm"],      // 可访问的应用列表（IAM 自定义）
@@ -240,6 +269,7 @@ sequenceDiagram
 | Claim | 类型 | 说明 |
 |-------|------|------|
 | `sub` | 标准 | 主题，IAM 中为用户 ID |
+| `subject_type` | 自定义 | 主体类型，区分 `user` 和 `client` |
 | `iss` | 标准 | 签发者，IAM 服务标识 |
 | `aud` | 标准 | 受众，Token 适用的目标服务 |
 | `exp` | 标准 | 过期时间（Unix 时间戳） |
@@ -247,6 +277,7 @@ sequenceDiagram
 | `tenant_id` | 自定义 | 租户 ID，用于数据隔离 |
 | `roles` | 自定义 | 用户角色列表 |
 | `apps` | 自定义 | 用户可访问的应用列表 |
+| `scopes` | 自定义 | 客户端可访问的机器权限范围 |
 
 **Token 双令牌机制：**
 
@@ -254,6 +285,7 @@ sequenceDiagram
 |-----------|--------|------|----------|
 | Access Token | 30 分钟 | API 请求认证 | 客户端内存/LocalStorage |
 | Refresh Token | 7 天 | 刷新 Access Token | 服务端 Redis + 客户端 HttpOnly Cookie |
+| Client Access Token | 10 分钟 | 内部服务调用 | 客户端内存/密钥管理组件 |
 
 ---
 

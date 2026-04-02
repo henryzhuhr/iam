@@ -6,11 +6,11 @@
 | **估时** | 3 人天 |
 | **关联用户故事** | US-022、US-023 |
 
-**背景：** 多租户场景下，需要防止单个租户或用户过度占用系统资源，保障整体系统稳定性和公平性，同时满足租户配额管理需求。
+**背景：** 多租户统一认证场景下，需要防止单个租户、用户或内部客户端过度占用系统资源，保障整体系统稳定性和公平性，同时满足租户与平台级调用主体的配额管理需求。
 
 **目标：**
 
-- 支持按租户/API/用户维度的限流
+- 支持按租户/API/用户/客户端维度的限流
 - 支持租户配额管理（用户数、角色数等）
 - 限流策略可配置
 - 配额超限后优雅降级
@@ -27,6 +27,7 @@
 | 全局限流 | 整个系统的总 QPS 限制 | 10000 QPS |
 | 租户限流 | 单个租户的 QPS 限制 | 1000 QPS |
 | 用户限流 | 单个用户的 QPS 限制 | 100 QPS |
+| 客户端限流 | 单个内部客户端的 QPS 限制 | 300 QPS |
 | IP 限流 | 单个 IP 的 QPS 限制 | 50 QPS |
 | API 限流 | 单个 API 接口的 QPS 限制 | 500 QPS |
 
@@ -42,6 +43,7 @@
 | `rate_limit_global_qps` | 10000 | 全局 QPS 上限 |
 | `rate_limit_tenant_qps` | 1000 | 单租户 QPS 上限 |
 | `rate_limit_user_qps` | 100 | 单用户 QPS 上限 |
+| `rate_limit_client_qps` | 300 | 单客户端 QPS 上限 |
 | `rate_limit_ip_qps` | 50 | 单 IP QPS 上限 |
 | `rate_limit_enabled` | true | 是否启用限流 |
 | `rate_limit_mode` | STRICT | STRICT/SLACK/BURST |
@@ -63,6 +65,7 @@
 | `max_user_groups` | 最大用户组数 | 20 |
 | `max_admin_users` | 最大管理员数 | 10 |
 | `api_call_monthly` | 月度 API 调用次数 | 1000 万 |
+| `client_call_monthly` | 内部客户端月度 API 调用次数 | 5000 万 |
 | `storage_mb` | 存储空间（MB） | 1024 |
 
 ### 4. 配额检查
@@ -115,7 +118,7 @@ HTTP 状态码：`429 Too Many Requests`
 | 健康检查接口 | `/health`, `/ready` |
 | 平台管理员操作 | 平台运营紧急操作 |
 | 白名单租户 | VIP 租户或测试租户 |
-| 内部服务调用 | 服务间调用（带内部 Token） |
+| 内部服务调用 | 服务间调用（带内部客户端 Token） |
 
 ### 8. 配额查询 API
 
@@ -215,6 +218,7 @@ GET    /api/v1/usage/resource-usage      # 资源使用情况
 | id | BIGINT | 是 | 主键 | 4001 |
 | tenant_id | BIGINT | 是 | 租户 ID | 100 |
 | user_id | BIGINT | 否 | 用户 ID | 2001 |
+| client_id | VARCHAR(64) | 否 | 客户端 ID | crm-service |
 | api_path | VARCHAR(255) | 是 | API 路径 | /api/v1/users |
 | call_count | BIGINT | - | 调用次数 | 1500 |
 | stat_date | DATE | 是 | 统计日期 | 2026-03-28 |
@@ -227,6 +231,7 @@ GET    /api/v1/usage/resource-usage      # 资源使用情况
 
 - [ ] API 限流正确生效
 - [ ] 租户配额检查正确
+- [ ] 客户端维度限流和统计正确
 - [ ] 配额超限后拒绝创建
 - [ ] 配额预警通知正常发送
 - [ ] 限流响应头和状态码正确
