@@ -10,7 +10,7 @@
 | **standards/** | 项目规范，包含项目结构、编码规范、Git 工作流、术语表、API/数据库设计规范 | 研发团队 | [standards/README.md](./standards/README.md) |
 | **references/** | 参考资料，收录 OAuth、OIDC、JWT、MFA、RBAC、OWASP 等技术概念说明 | 研发团队 | [references/README.md](./references/README.md) |
 | **issues/** | Issue 跟踪目录，记录项目开发过程中的所有 Issue | 全体研发 | [issues/README.md](./issues/README.md) |
-| **TDD** | 技术设计文档，开发视角的架构与实现设计 | 研发团队 | **[待设计]** |
+| **TDD** | 技术设计文档，开发视角的架构与实现设计 | 研发团队 | [TDD/README.md](./TDD/README.md) |
 
 查看各目录的 `README.md` 获取详细文档列表：
 
@@ -31,9 +31,9 @@ docs/
 2. [standards/README.md](./standards/README.md) - 了解项目结构、编码约定和 issue 规范
 3. [references/README.md](./references/README.md) - 查阅技术概念和协议标准
 
-### 待补充
+### TDD 技术设计
 
-- [TDD/README.md](./TDD/README.md) - 技术设计文档，开发视角的架构与实现设计
+- [001-iam-system-architecture-design.md](./TDD/001-iam-system-architecture-design.md) - IAM 系统技术设计文档（数据库 Schema、API 端点、错误处理、测试策略）
 
 ## 维护约定
 

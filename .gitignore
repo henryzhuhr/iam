@@ -1,6 +1,7 @@
 # ========================
 #   Repo-specific ignores
 # ========================
+.superpowers/
 bin/
 .worktrees/
 
