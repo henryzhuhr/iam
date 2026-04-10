@@ -40,7 +40,7 @@ services:
       - default
     environment:
       MYSQL_ROOT_PASSWORD: rootpassword
-      MYSQL_DATABASE: business
+      MYSQL_DATABASE: iam
     ports:
       - "35069:3306"
     healthcheck:
@@ -61,8 +61,8 @@ services:
     restart: always
     networks:
       - default
-    # ports:
-    #   - "33308:6379"
+    ports:
+      - "33308:6379"
     healthcheck:
       test: ["CMD", "redis-cli", "ping"]
       interval: 30s
@@ -88,6 +88,8 @@ services:
       KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
       KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: 0
       KAFKA_NUM_PARTITIONS: 3
+    ports:
+      - "39092:9092"
     healthcheck:
       test: ["CMD", "/opt/kafka/bin/kafka-broker-api-versions.sh", "--bootstrap-server", "localhost:9092"]
       interval: 10s
