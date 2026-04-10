@@ -1,15 +1,32 @@
-Name: hellogozero
+Name: iam
 Host: 0.0.0.0
-Port: 8080
-Timeout: 1000
+Port: 8888
+Timeout: 10000
 Log:
   Level: debug
   Stat: false
-  Encoding: plain # plain 或 json
+  Encoding: plain
 
-LocaleDir: ./locales  # 国际化资源文件目录
+LocaleDir: ./locales
 
-# Pprof 性能分析配置
+DB:
+  Host: mysql
+  Port: 3306
+  User: root
+  Password: rootpassword
+  Database: iam
+
+Redis:
+  Host: redis
+  Port: 6379
+  Password: ""
+  DB: 0
+
+Kafka:
+  Brokers:
+    - kafka-broker:9092
+  Topic: iam-audit-logs
+
 Pprof:
-  Enabled: true  # 是否启用 pprof，生产环境建议设为 false
-  Port: 6060     # pprof 服务端口
+  Enabled: true
+  Port: 6060
