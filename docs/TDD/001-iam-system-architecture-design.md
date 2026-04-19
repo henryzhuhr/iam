@@ -20,6 +20,7 @@
 | 数据库 | MySQL 8.0 |
 | 缓存 | Redis 7.0 |
 | 消息队列 | Kafka 3.0 |
+| 前端 | Vue 3 + Vite + TypeScript + Element Plus |
 | 容器化 | Docker + Docker Compose |
 
 ### 1.3 目录结构
@@ -28,6 +29,10 @@
 iam/
 ├── app/main.go                          # 应用入口
 ├── etc/dev.yaml                         # 配置文件
+├── web/                                 # 前端源码目录
+│   ├── public/                          # 静态资源
+│   ├── index.html                       # HTML 入口
+│   └── src/                             # Vue 3 + TypeScript 源码
 ├── infra/                               # 基础设施层
 │   ├── cache/                           # Redis 缓存封装
 │   ├── database/                        # MySQL 连接封装
@@ -82,6 +87,9 @@ iam/
 │   ├── api/                             # API 端到端测试
 │   └── fixtures/                        # 测试数据
 ├── debug/                               # Python 调试脚本
+├── package.json                         # 前端构建配置
+├── vite.config.ts                       # Vite 配置
+├── tsconfig.json                        # TypeScript 配置
 └── docker-compose.yml                   # 容器编排
 ```
 
@@ -94,6 +102,7 @@ iam/
 | 多租户隔离 | 逻辑隔离（tenant_id 强制过滤） | 独立数据库 |
 | Token 机制 | RS256 JWT + Redis Refresh Token + 黑名单 | 纯 Session |
 | 审计日志写入 | Kafka 异步落盘 | 同步写入 |
+| 前端方案 | Vue 3 + Vite，构建文件放根目录 | 独立前端仓库 / web/ 下独立构建 |
 
 ---
 
@@ -604,16 +613,18 @@ sequenceDiagram
 {
   "code": 0,
   "message": "success",
-  "data": { ... },
-  "trace_id": "abc-123"
+  "data": { ... }
 }
 
 // 错误响应
 {
-  "code": 10001,
+  "code": 1001,
   "message": "用户不存在",
   "data": null,
-  "trace_id": "abc-123"
+  "details": {
+    "field": "user_id",
+    "reason": "record not found"
+  }
 }
 ```
 
@@ -632,21 +643,19 @@ sequenceDiagram
 
 ### 5.3 业务错误码
 
-错误码 = 模块编号(2位) + 业务编号(3位)
+错误码 = 模块码(2位) + 子模块码(2位) + 错误序号(2位)，与 `05-api-design.md` 保持一致。
 
 | 范围 | 模块 | 示例 |
 |------|------|------|
-| 0 | 通用 | 成功 |
-| 10001~10099 | 认证 | 10001=密码错误, 10002=账号锁定, 10003=MFA失败, 10004=验证码错误, 10005=验证码已过期 |
-| 11001~11099 | Token | 11001=Token过期, 11002=Token无效, 11003=Token已撤销, 11004=Refresh Token无效 |
-| 20001~20099 | 用户 | 20001=用户不存在, 20002=邮箱已存在, 20003=用户已禁用, 20004=密码不满足策略 |
-| 30001~30099 | 角色/权限 | 30001=角色不存在, 30002=角色编码重复, 30003=权限冲突(SoD), 30004=权限不足 |
-| 40001~40099 | 租户 | 40001=租户不存在, 40002=租户已过期, 40003=租户已禁用, 40004=超出配额 |
-| 50001~50099 | 应用 | 50001=应用不存在, 50002=应用已禁用, 50003=用户未授权此应用 |
-| 60001~60099 | 客户端 | 60001=客户端不存在, 60002=AK/SK无效, 60003=客户端已禁用 |
-| 99001~99099 | 系统 | 99001=内部错误, 99002=数据库错误, 99003=Redis错误, 99004=Kafka错误 |
-
-> 注意：错误码格式与 `05-api-design.md` 中定义的 6 位模块码(模块码+子模块+序号) 存在差异。本设计采用 5 位简化格式，后续如需对齐可统一调整。
+| 010101~010199 | 认证 | 010101=密码错误, 010102=账号锁定, 010103=MFA失败, 010104=验证码错误, 010105=验证码已过期 |
+| 010201~010299 | Token | 010201=Token过期, 010202=Token无效, 010203=Token已撤销, 010204=Refresh Token无效 |
+| 020101~020199 | 用户 | 020101=用户不存在, 020102=邮箱已存在, 020103=用户已禁用, 020104=密码不满足策略 |
+| 030101~030199 | 租户 | 030101=租户不存在, 030102=租户已过期, 030103=租户已禁用, 030104=超出配额 |
+| 040101~040199 | 角色 | 040101=角色不存在, 040102=角色编码重复, 040103=权限冲突(SoD), 040104=权限不足 |
+| 050101~050199 | 权限 | 050101=权限不存在, 050102=权限编码重复 |
+| 060101~060199 | MFA | 060101=MFA未启用, 060102=MFA验证失败 |
+| 070101~070199 | 审计日志 | 070101=日志写入失败 |
+| 990101~990199 | 系统 | 990101=内部错误, 990102=数据库错误, 990103=Redis错误, 990104=Kafka错误 |
 
 ---
 
@@ -684,12 +693,15 @@ sequenceDiagram
 
 ```
 push/PR
-  ├─ 1. lint:    golangci-lint
-  ├─ 2. build:   go build ./...
-  ├─ 3. unit:    go test ./... -race -cover
+  ├─ 1. lint:      golangci-lint + eslint
+  ├─ 2. build:     go build ./... && npm run build
+  ├─ 3. unit:      go test ./... -race -cover + npm run test:unit
   ├─ 4. integration: docker compose up deps → go test -tags=integration
-  └─ 5. api:     启动服务 → 跑用例
+  ├─ 5. api:       启动服务 → 跑用例
+  └─ 6. e2e:       启动前后端 → Playwright 跑 E2E 测试
 ```
+
+> 注意：agent-browser 仅用于开发期交互式验证，不进入 CI 流水线。
 
 **本地触发验证：**
 
@@ -697,11 +709,12 @@ CI 的每一步都可以在本地执行，方便在推送前验证：
 
 | 步骤 | 本地命令 | 依赖 |
 |------|----------|------|
-| lint | `golangci-lint run ./...` | 安装 golangci-lint |
-| build | `go build ./...` | 无 |
-| unit | `go test ./... -race -cover` | 无 |
-| integration | `docker compose -f docker-compose.ci.yml up -d mysql redis && go test -tags=integration ./...` | Docker, docker compose |
+| lint | `golangci-lint run ./...` + `npx eslint web/src/` | 安装 golangci-lint, npm |
+| build | `go build ./...` + `npm run build` | npm |
+| unit | `go test ./... -race -cover` + `npm run test:unit` | npm |
+| integration | `docker compose up -d mysql redis && go test -tags=integration ./...` | Docker, docker compose |
 | api | `go run app/main.go -f etc/test.yaml & python -m pytest tests/api/` | 完整依赖环境 |
+| e2e | `npm run test:e2e` | Playwright（`npx playwright install`） |
 
 **本地一键验证脚本（待实现）：**
 
@@ -709,12 +722,18 @@ CI 的每一步都可以在本地执行，方便在推送前验证：
 # scripts/ci-local.sh
 #!/bin/bash
 set -e
-echo "=== lint ==="
+echo "=== go lint ==="
 golangci-lint run ./...
-echo "=== build ==="
+echo "=== eslint ==="
+npx eslint web/src/
+echo "=== go build ==="
 go build ./...
-echo "=== unit test ==="
+echo "=== npm build ==="
+npm run build
+echo "=== go unit test ==="
 go test ./... -race -cover
+echo "=== npm unit test ==="
+npm run test:unit
 echo "=== all passed ==="
 ```
 
@@ -738,6 +757,24 @@ internal/tests/
 └── fixtures/
     ├── init.sql
     └── seed_data.go
+
+web/                          # 前端测试 + 开发验证
+├── src/                      # 前端单元测试 + 组件测试
+│   ├── api/__tests__/
+│   │   └── request.test.ts
+│   ├── stores/__tests__/
+│   │   └── auth.test.ts
+│   ├── utils/__tests__/
+│   │   └── format.test.ts
+│   └── views/auth/__tests__/
+│       └── Login.test.ts
+├── tests/e2e/                # Playwright E2E 测试
+│   ├── login.spec.ts
+│   ├── tenant.spec.ts
+│   └── user.spec.ts
+└── dev-verify/               # agent-browser 开发验证截图（不提交到 git）
+    ├── login-rendered.png
+    └── dashboard-rendered.png
 ```
 
 ---

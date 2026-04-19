@@ -32,6 +32,19 @@ services:
     working_dir: /root/iam
     command: ["sleep", 'infinity']
 
+  # Frontend (dev)
+  # docker exec -it --workdir /root/iam iam-web zsh
+  iam-web:
+    image: node:22-alpine
+    container_name: iam-web
+    networks:
+      - default
+    ports:
+      - "5173:5173"
+    volumes:
+      - .:/root/iam
+    working_dir: /root/iam
+    command: ["sh", "-c", "npm install && npm run dev -- --host 0.0.0.0"]
   
   mysql:
     image: mysql:9.6 # https://hub.docker.com/_/mysql
@@ -69,7 +82,7 @@ services:
       timeout: 10s
       retries: 3
       start_period: 10s # 等待 Redis 启动完成
-  
+
   # Kafka
   kafka-broker:
     image: apache/kafka:4.1.2 # https://hub.docker.com/r/apache/kafka

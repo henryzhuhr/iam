@@ -7,7 +7,7 @@
 
 ## 1. 项目概述
 
-IAM (身份认证与访问管理 / Identity and Access Management) 是一个以 Golang 后端为主、运行于 Docker 容器环境的多语言项目。
+IAM (身份认证与访问管理 / Identity and Access Management) 是一个以 Golang 后端为主、运行于 Docker 容器环境的多语言项目，包含 Vue 3 前端控制台。
 
 ## 2. 技术栈
 
@@ -15,6 +15,7 @@ IAM (身份认证与访问管理 / Identity and Access Management) 是一个以 
 |------|------|
 | **Golang** | 主要应用逻辑、API 服务器和业务逻辑 |
 | **Python** | 业务接口测试，使用 `uv` 作为包管理器和运行环境 |
+| **Vue 3 / TypeScript** | 前端 Web 控制台，Vite 构建 |
 | **go-zero** | 后端微服务框架 |
 | **MySQL** | 数据库 |
 | **Redis** | 缓存 |
@@ -45,12 +46,20 @@ iam/
 │   ├── routes/             # 路由注册
 │   ├── service/            # 业务逻辑层
 │   └── svc/                # 服务上下文
+├── web/                    # 前端源码目录
+│   ├── public/             # 静态资源
+│   ├── index.html          # HTML 入口
+│   └── src/                # 前端源码（Vue 3 + TypeScript）
 ├── sql/                    # SQL 脚本
 ├── scripts/                # 脚本文件
 ├── dockerfiles/            # Docker 相关文件
 ├── debug/                  # 调试脚本（Python）
 ├── docker-compose.yml      # Docker Compose 配置
 ├── go.mod                  # Go 模块依赖
+├── package.json            # 前端构建配置
+├── vite.config.ts          # Vite 构建配置
+├── tsconfig.json           # TypeScript 配置
+├── node_modules/           # 前端依赖（.gitignore）
 └── README.md               # 项目说明
 ```
 
@@ -91,8 +100,23 @@ internal/
 ## 5. 开发命令
 
 ```bash
-# 启动服务
+# 启动后端服务
 go run app/main.go -f etc/dev.yaml
+
+# 启动前端开发服务器（构建文件在根目录，无需切换目录）
+npm run dev
+
+# 前端构建
+npm run build
+
+# 前端单元测试 + 组件测试
+npm run test:unit
+
+# 前端 E2E 测试
+npm run test:e2e
+
+# 全部测试（单元 + 组件 + E2E）
+npm run test
 ```
 
 ## 6. 新增标准接口的开发流程
