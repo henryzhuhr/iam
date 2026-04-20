@@ -63,7 +63,7 @@
 
 ### 4. 客户端 Token 申请
 
-1. 内部客户端使用 `AK/SK` 调用 `/api/v1/auth/token`
+1. 内部客户端使用 `AK/SK` 调用 `/api/v1/clients/token`
 2. 服务端验证客户端状态、凭证有效性和允许的 `scope`
 3. 返回短期 JWT Access Token（默认 10 分钟）
 4. 不返回 Refresh Token，客户端在过期前重新申请
@@ -126,7 +126,7 @@
 POST   /api/v1/auth/refresh      # 刷新 Token
 POST   /api/v1/auth/logout       # 登出（撤销 Token）
 POST   /api/v1/auth/logout/all   # 撤销所有设备 Token
-POST   /api/v1/auth/token        # 客户端凭证换取 Token
+POST   /api/v1/clients/token     # 客户端凭证换取 Token
 GET    /api/v1/auth/sessions     # 获取活跃会话列表
 DELETE /api/v1/auth/sessions/:id # 撤销指定会话
 ```

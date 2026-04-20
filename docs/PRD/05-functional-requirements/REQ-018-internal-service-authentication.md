@@ -4,7 +4,7 @@
 |------|------|
 | **优先级** | P0 |
 | **估时** | 6 人天 |
-| **关联用户故事** | US-015 |
+| **关联用户故事** | US-034、US-035 |
 
 **背景：** IAM 不能只覆盖用户登录，还需要为平台自有的 OA、CRM、ERP、调度任务、后台服务等内部系统提供统一认证能力，避免各业务系统自行维护静态密钥和重复鉴权逻辑。
 
@@ -33,7 +33,7 @@
 
 ### 3. Token 申请
 
-1. 内部客户端调用 `POST /api/v1/auth/token`
+1. 内部客户端调用 `POST /api/v1/clients/token`
 2. 请求携带 `grant_type=client_credentials`
 3. 服务端校验 `AK/SK`、客户端状态和允许的 `scope`
 4. 校验通过后签发短期 JWT Access Token
@@ -90,27 +90,28 @@
 **API 接口：**
 
 ```
-POST /api/v1/auth/token                      # 客户端凭证换取 Token
+POST /api/v1/clients/token                   # 客户端凭证换取 Token
 POST /api/v1/clients                         # 创建客户端
 GET  /api/v1/clients                         # 客户端列表
 GET  /api/v1/clients/:id                     # 客户端详情
+PUT  /api/v1/clients/:id                     # 更新客户端
 POST /api/v1/clients/:id/credentials         # 创建 AK/SK
 POST /api/v1/clients/:id/credentials/rotate  # 轮换 AK/SK
-POST /api/v1/clients/:id/scopes              # 配置客户端 scopes
-POST /api/v1/clients/:id/disable             # 禁用客户端
+PUT  /api/v1/clients/:id/scopes              # 配置客户端 scopes
+PUT  /api/v1/clients/:id/status              # 禁用/启用客户端
 ```
 
 **数据库设计：**
 
-**客户端表（auth_clients）**
+**客户端表（clients）**
 
 | 字段 | 类型 | 必填 | 说明 | 示例 |
 |------|------|------|------|------|
 | id | BIGINT | 是 | 主键 | 1001 |
 | client_id | VARCHAR(64) | 是 | 客户端标识，全局唯一 | crm-service |
-| client_name | VARCHAR(128) | 是 | 客户端名称 | CRM Internal Service |
-| client_type | VARCHAR(20) | 是 | 客户端类型 | internal |
-| status | VARCHAR(20) | 是 | 状态 | active/disabled |
+| name | VARCHAR(128) | 是 | 客户端名称 | CRM Internal Service |
+| status | TINYINT | 是 | 状态 | 1=启用 2=禁用 |
+| allowed_scopes | JSON | 是 | 允许的 scopes | `["user:read"]` |
 | access_token_ttl_sec | INT | 是 | Access Token 有效期（秒） | 600 |
 | created_at | DATETIME | - | 创建时间 | 2026-04-02 10:00:00 |
 | updated_at | DATETIME | - | 更新时间 | 2026-04-02 10:00:00 |
@@ -119,22 +120,28 @@ POST /api/v1/clients/:id/disable             # 禁用客户端
 
 ---
 
-**客户端凭证表（auth_client_credentials）**
+**客户端凭证表（client_credentials）**
 
 | 字段 | 类型 | 必填 | 说明 | 示例 |
 |------|------|------|------|------|
 | id | BIGINT | 是 | 主键 | 2001 |
-| client_id | VARCHAR(64) | 是 | 客户端 ID | crm-service |
+| client_db_id | BIGINT | 是 | 客户端主键 ID | 1001 |
 | access_key_id | VARCHAR(64) | 是 | AK 标识 | ak_xxxxx |
 | secret_hash | VARCHAR(255) | 是 | SK 哈希值 | hash_xxxxx |
 | secret_hint | VARCHAR(16) | 否 | SK 提示信息 | `...8F3A` |
-| status | VARCHAR(20) | 是 | 状态 | active/disabled/expired |
+| status | TINYINT | 是 | 状态 | 1=启用 2=禁用 3=过期 |
 | expires_at | DATETIME | 否 | 过期时间 | 2026-10-01 00:00:00 |
 | last_used_at | DATETIME | 否 | 最近使用时间 | 2026-04-02 11:00:00 |
 | rotated_at | DATETIME | 否 | 轮换时间 | 2026-04-02 10:30:00 |
 | created_at | DATETIME | - | 创建时间 | 2026-04-02 10:00:00 |
 
-**索引**：`uk_access_key_id` (access_key_id)、`idx_client_status` (client_id, status)
+**索引**：`uk_access_key_id` (access_key_id)、`idx_client_status` (client_db_id, status)
+
+**设计约束：**
+
+1. 客户端元数据与凭证分表存储，支持一套客户端多次轮换凭证
+2. 同一时刻仅允许一个主用凭证处于启用状态；如需灰度轮换，可短暂允许两套凭证并存，但必须设置旧凭证失效时间
+3. 客户端禁用后，不影响已签发 Token 的签名校验，但网关或鉴权层需在关键路径校验客户端状态或通过短 TTL 自然淘汰
 
 **验收标准：**
 

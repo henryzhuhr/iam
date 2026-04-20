@@ -108,7 +108,7 @@ iam/
 
 ## 2. 数据库 Schema 设计
 
-共 **14 张表**，按领域分为 7 组。
+共 **18 张表**，按领域分为 7 组。
 
 ### 2.1 租户管理
 
@@ -148,6 +148,29 @@ iam/
 - `UNIQUE KEY uk_tenant_email (tenant_id, email)`
 - `INDEX idx_tenant_status (tenant_id, status)`
 
+说明：
+- `users` 表只保存已完成激活的正式用户
+- 首版本不支持匿名开放注册，`/auth/register` 必须基于邀请令牌完成
+
+**user_invitations — 用户邀请表**
+
+| 字段 | 类型 | 约束 | 说明 |
+|------|------|------|------|
+| id | BIGINT | PK, AUTO_INCREMENT | 主键 |
+| tenant_id | BIGINT | NOT NULL, INDEX | 目标租户 ID |
+| email | VARCHAR(100) | NOT NULL, INDEX | 受邀邮箱 |
+| inviter_user_id | BIGINT | NULL | 邀请人用户 ID |
+| token_hash | VARCHAR(255) | NOT NULL, UNIQUE | 邀请令牌哈希 |
+| status | TINYINT | NOT NULL, DEFAULT 1 | 1=待接受 2=已接受 3=已过期 4=已撤销 |
+| expires_at | DATETIME | NOT NULL | 过期时间 |
+| accepted_at | DATETIME | NULL | 接受时间 |
+| created_at | DATETIME | NOT NULL, DEFAULT CURRENT_TIMESTAMP | 创建时间 |
+
+索引：
+- `UNIQUE KEY uk_token_hash (token_hash)`
+- `INDEX idx_tenant_email_status (tenant_id, email, status)`
+- `INDEX idx_expires_at (expires_at)`
+
 **user_groups — 用户组表**
 
 | 字段 | 类型 | 约束 | 说明 |
@@ -156,6 +179,12 @@ iam/
 | tenant_id | BIGINT | NOT NULL, INDEX | 租户 ID |
 | name | VARCHAR(100) | NOT NULL | 用户组名称 |
 | description | TEXT | NULL | 描述 |
+| parent_id | BIGINT | NULL, INDEX | 父组 ID |
+| level | INT | NOT NULL, DEFAULT 1 | 层级深度 |
+| path | VARCHAR(500) | NULL | 完整路径 |
+| is_system | TINYINT | NOT NULL, DEFAULT 0 | 是否系统组 |
+| group_type | VARCHAR(20) | NOT NULL, DEFAULT 'NORMAL' | 组类型 |
+| sort_order | INT | NOT NULL, DEFAULT 0 | 排序号 |
 | created_at | DATETIME | NOT NULL, DEFAULT CURRENT_TIMESTAMP | 创建时间 |
 | updated_at | DATETIME | NOT NULL, DEFAULT CURRENT_TIMESTAMP ON UPDATE | 更新时间 |
 
@@ -164,8 +193,10 @@ iam/
 | 字段 | 类型 | 约束 | 说明 |
 |------|------|------|------|
 | id | BIGINT | PK, AUTO_INCREMENT | 主键 |
+| tenant_id | BIGINT | NOT NULL, INDEX | 租户 ID |
 | group_id | BIGINT | NOT NULL, INDEX | 用户组 ID |
 | user_id | BIGINT | NOT NULL, INDEX | 用户 ID |
+| created_by | BIGINT | NULL | 操作人 |
 | created_at | DATETIME | NOT NULL, DEFAULT CURRENT_TIMESTAMP | 加入时间 |
 
 索引：
@@ -281,13 +312,27 @@ iam/
 |------|------|------|------|
 | id | BIGINT | PK, AUTO_INCREMENT | 主键 |
 | client_id | VARCHAR(64) | UNIQUE, NOT NULL | 客户端标识 |
-| access_key | VARCHAR(64) | NOT NULL | AK |
-| secret_key_hash | VARCHAR(255) | NOT NULL | SK 哈希 |
 | name | VARCHAR(100) | NOT NULL | 客户端名称 |
 | allowed_scopes | JSON | NOT NULL | 允许的 scopes |
+| access_token_ttl_sec | INT | NOT NULL, DEFAULT 600 | Access Token TTL（秒） |
 | status | TINYINT | NOT NULL, DEFAULT 1 | 1=启用 2=禁用 |
 | created_at | DATETIME | NOT NULL, DEFAULT CURRENT_TIMESTAMP | 创建时间 |
 | updated_at | DATETIME | NOT NULL, DEFAULT CURRENT_TIMESTAMP ON UPDATE | 更新时间 |
+
+**client_credentials — 客户端凭证表**
+
+| 字段 | 类型 | 约束 | 说明 |
+|------|------|------|------|
+| id | BIGINT | PK, AUTO_INCREMENT | 主键 |
+| client_id | BIGINT | NOT NULL, INDEX | 客户端主键 ID |
+| access_key_id | VARCHAR(64) | UNIQUE, NOT NULL | AK 标识 |
+| secret_hash | VARCHAR(255) | NOT NULL | SK 哈希 |
+| secret_hint | VARCHAR(16) | NULL | SK 提示信息 |
+| status | TINYINT | NOT NULL, DEFAULT 1 | 1=启用 2=禁用 3=过期 |
+| expires_at | DATETIME | NULL | 过期时间 |
+| last_used_at | DATETIME | NULL | 最近使用时间 |
+| rotated_at | DATETIME | NULL | 轮换时间 |
+| created_at | DATETIME | NOT NULL, DEFAULT CURRENT_TIMESTAMP | 创建时间 |
 
 ### 2.6 审计日志
 
@@ -297,6 +342,7 @@ iam/
 |------|------|------|------|
 | id | BIGINT | PK, AUTO_INCREMENT | 主键 |
 | tenant_id | BIGINT | NOT NULL, INDEX | 租户 ID |
+| app_id | BIGINT | NULL, INDEX | 应用 ID |
 | user_id | BIGINT | NOT NULL, INDEX | 操作人 |
 | action | VARCHAR(100) | NOT NULL | 操作类型 |
 | resource_type | VARCHAR(50) | NOT NULL | 资源类型 |
@@ -314,6 +360,7 @@ iam/
 | id | BIGINT | PK, AUTO_INCREMENT | 主键 |
 | tenant_id | BIGINT | NOT NULL, INDEX | 租户 ID |
 | user_id | BIGINT | NULL | NULL=登录失败 |
+| app_id | BIGINT | NULL, INDEX | 应用 ID |
 | email | VARCHAR(100) | NOT NULL | 登录账号 |
 | status | TINYINT | NOT NULL | 1=成功 2=失败 3=MFA待验证 |
 | fail_reason | VARCHAR(200) | NULL | 失败原因 |
@@ -364,7 +411,7 @@ iam/
 | 方法 | 路径 | 说明 | 认证 |
 |------|------|------|------|
 | POST | `/auth/login` | 用户登录（密码/验证码） | 免认证 |
-| POST | `/auth/register` | 用户注册 | 免认证 |
+| POST | `/auth/register` | 受邀用户完成注册/激活 | 免认证 |
 | POST | `/auth/password/reset` | 密码重置（邮件验证码） | 免认证 |
 | POST | `/auth/refresh` | 刷新 Access Token | Refresh Token |
 | POST | `/auth/logout` | 登出（加入黑名单） | Bearer Token |
@@ -390,6 +437,7 @@ iam/
 | PUT | `/users/:id/password` | 修改密码（管理员重置） |
 | POST | `/users/batch-import` | 批量导入用户（CSV） |
 | GET | `/users/batch-import/template` | 下载导入模板 |
+| POST | `/users/invitations` | 发送用户入租邀请 |
 
 ### 3.3 用户组管理模块（`/groups`）
 
@@ -458,8 +506,10 @@ iam/
 | POST | `/clients` | 创建客户端 | 平台管理员 |
 | GET | `/clients/:id` | 客户端详情 | 平台管理员 |
 | PUT | `/clients/:id` | 更新客户端 | 平台管理员 |
-| PUT | `/clients/:id/rotate-key` | 轮换密钥 | 平台管理员 |
-| DELETE | `/clients/:id` | 删除客户端 | 平台管理员 |
+| POST | `/clients/:id/credentials` | 创建客户端凭证 | 平台管理员 |
+| POST | `/clients/:id/credentials/rotate` | 轮换客户端凭证 | 平台管理员 |
+| PUT | `/clients/:id/scopes` | 更新客户端 scopes | 平台管理员 |
+| PUT | `/clients/:id/status` | 启用/禁用客户端 | 平台管理员 |
 
 ### 3.9 审计日志模块（`/logs`）与用户自助
 
@@ -486,7 +536,7 @@ iam/
 ### 4.1 模块依赖关系
 
 ```
-auth_handler  →  user_service, auth_service, audit_service, login_log_service, redis_service
+auth_handler  →  user_service, auth_service, client_service, audit_service, login_log_service, redis_service
 user_handler  →  user_service, role_service, app_service, password_policy_service
 group_handler →  group_service, user_service
 role_handler  →  role_service, permission_service, audit_service
@@ -784,7 +834,7 @@ web/                          # 前端测试 + 开发验证
 | REQ | 需求 | 涉及表 | 涉及 API 模块 | 状态 |
 |-----|------|--------|---------------|------|
 | REQ-001 | 用户登录 | users, login_logs | auth | 已设计 |
-| REQ-002 | 用户注册 | users | auth | 已设计 |
+| REQ-002 | 用户注册与激活 | users, user_invitations | auth, user | 已设计 |
 | REQ-003 | 密码重置 | users, password_history | auth | 已设计 |
 | REQ-004 | 用户管理 | users | user | 已设计 |
 | REQ-005 | 角色管理 | roles, role_permissions | role | 已设计 |
@@ -799,8 +849,8 @@ web/                          # 前端测试 + 开发验证
 | REQ-014 | 用户组管理 | user_groups, user_group_members | group | 已设计 |
 | REQ-015 | 验证码登录 | users, login_logs | auth | 已设计 |
 | REQ-016 | API 限流 | Redis | 中间件 | 已设计 |
-| REQ-017 | 应用级数据隔离 | applications, user_app_authorizations | app | 已设计 |
-| REQ-018 | 内部服务认证 | clients | client | 已设计 |
+| REQ-017 | 应用管理与数据隔离 | applications, user_app_authorizations | app | 已设计 |
+| REQ-018 | 内部服务认证 | clients, client_credentials | client | 已设计 |
 
 ---
 

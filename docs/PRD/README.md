@@ -31,11 +31,11 @@
 
 | 优先级 | 数量 | 估时 |
 |--------|------|------|
-| P0 | 10 | 34 人天 |
-| P1 | 7 | 24 人天 |
+| P0 | 10 | 36 人天 |
+| P1 | 7 | 22 人天 |
 | P2 | 1 | 5 人天 |
 
-当前共 18 个需求，涵盖统一认证、用户管理、权限管理、租户管理、审计日志、系统基础和应用隔离七个模块。最新新增需求为 [REQ-018 内部服务认证](./05-functional-requirements/REQ-018-internal-service-authentication.md)。
+当前共 18 个需求，涵盖统一认证、用户管理、权限管理、租户管理、审计日志、系统基础和应用管理七个模块。最新新增需求为 [REQ-018 内部服务认证](./05-functional-requirements/REQ-018-internal-service-authentication.md)。
 
 ## 阅读导航
 
@@ -63,6 +63,6 @@
 | 租户管理 | `REQ-007` |
 | 审计日志 | `REQ-009`、`REQ-010` |
 | 系统基础 | `REQ-016` |
-| 应用隔离 | `REQ-017` |
+| 应用管理 | `REQ-017` |
 
 详细文档请从 [05-functional-requirements/README.md](./05-functional-requirements/README.md) 进入。

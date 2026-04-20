@@ -3,7 +3,7 @@
 | 项目 | 内容 |
 |------|------|
 | **优先级** | P1 |
-| **估时** | 4 人天 |
+| **估时** | 3 人天 |
 | **关联用户故事** | US-016、US-017 |
 
 **背景：** 企业用户需要通过用户组来批量管理用户和权限，支持组织架构的层级关系，简化大规模用户管理成本。
@@ -13,8 +13,8 @@
 - 支持用户组的创建、查询、更新、删除
 - 支持树形层级结构（父子用户组）
 - 支持用户组成员管理
-- 支持权限继承（子组继承父组权限）
 - 支持批量用户操作
+- 为后续组织维度授权预留扩展空间
 
 **功能描述：**
 
@@ -58,26 +58,15 @@
 1. 添加成员：将用户添加到用户组
 2. 移除成员：从用户组移除用户
 3. 批量添加：支持 Excel 导入或选择多个用户
-4. 成员列表：查询组内所有成员（含继承成员）
+4. 成员列表：查询组内所有直接成员
 5. 成员去重：一个用户可在多个组，但组内不重复
 
-### 4. 权限继承
+### 4. v1 边界说明
 
-1. 子组自动继承父组的所有权限
-2. 用户权限 = 所属所有组的权限并集
-3. 支持权限覆盖配置（允许/拒绝）
-4. 权限变更时，继承关系实时生效
-
-权限计算优先级：
-```
-用户直接权限 > 拒绝策略 > 允许策略 > 默认拒绝
-```
-
-### 5. 用户组角色
-
-1. 每个用户组可设置一个组管理员
-2. 组管理员可管理本组成员
-3. 组管理员不能超越租户管理员权限
+1. v1 用户组仅承担组织与成员管理职责，不参与权限计算
+2. 用户最终权限仅由角色授权决定，不存在“用户组权限继承”和“拒绝策略”
+3. 动态组、组管理员、组级权限配置延后到 roadmap
+4. 用户组可作为批量操作和后续自动化授权的组织基础数据
 
 **用户组类型：**
 
@@ -85,7 +74,7 @@
 |------|------|--------|
 | 系统组 | 系统预置（如 All Users） | 否 |
 | 普通组 | 租户自定义 | 是 |
-| 动态组 | 基于规则自动成员 | 是 |
+| 动态组 | 基于规则自动成员（v1 不实现） | 是 |
 
 **异常情况：**
 
@@ -101,22 +90,19 @@
 
 ```
 # 用户组管理
-POST   /api/v1/user-groups              # 创建用户组
-GET    /api/v1/user-groups              # 用户组列表
-GET    /api/v1/user-groups/tree         # 树形结构查询
-GET    /api/v1/user-groups/:id          # 用户组详情
-PUT    /api/v1/user-groups/:id          # 更新用户组
-DELETE /api/v1/user-groups/:id          # 删除用户组
+POST   /api/v1/groups                   # 创建用户组
+GET    /api/v1/groups                   # 用户组列表
+GET    /api/v1/groups/tree              # 树形结构查询
+GET    /api/v1/groups/:id               # 用户组详情
+PUT    /api/v1/groups/:id               # 更新用户组
+DELETE /api/v1/groups/:id               # 删除用户组
 
 # 成员管理
-GET    /api/v1/user-groups/:id/members  # 获取组成员列表
-POST   /api/v1/user-groups/:id/members  # 添加组成员
-DELETE /api/v1/user-groups/:id/members/:userId  # 移除组成员
-POST   /api/v1/user-groups/:id/members/batch  # 批量添加成员
+GET    /api/v1/groups/:id/members       # 获取组成员列表
+POST   /api/v1/groups/:id/members       # 添加组成员
+DELETE /api/v1/groups/:id/members/:userId  # 移除组成员
+POST   /api/v1/groups/:id/members/batch # 批量添加成员
 
-# 权限管理
-GET    /api/v1/user-groups/:id/permissions    # 获取组权限
-POST   /api/v1/user-groups/:id/permissions    # 分配权限
 ```
 
 **数据库设计：**
@@ -133,7 +119,7 @@ POST   /api/v1/user-groups/:id/permissions    # 分配权限
 | level | INT | - | 层级深度 | 2 |
 | path | VARCHAR(500) | 否 | 完整路径 | /1/5/12/ |
 | is_system | BOOLEAN | - | 是否系统组 | true/false |
-| group_type | VARCHAR(20) | - | 组类型 | NORMAL/DYNAMIC |
+| group_type | VARCHAR(20) | - | 组类型 | NORMAL |
 | sort_order | INT | - | 排序号 | 10 |
 | created_at | DATETIME | - | 创建时间 | 2026-03-28 10:00:00 |
 | updated_at | DATETIME | - | 更新时间 | 2026-03-28 10:00:00 |
@@ -150,7 +136,6 @@ POST   /api/v1/user-groups/:id/permissions    # 分配权限
 | 字段 | 类型 | 必填 | 说明 | 示例 |
 |------|------|------|------|------|
 | id | BIGINT | 是 | 主键 | 2001 |
-| tenant_id | BIGINT | 是 | 租户 ID | 100 |
 | group_id | BIGINT | 是 | 用户组 ID | 1001 |
 | user_id | BIGINT | 是 | 用户 ID | 2001 |
 | created_at | DATETIME | - | 创建时间 | 2026-03-28 10:00:00 |
@@ -160,33 +145,7 @@ POST   /api/v1/user-groups/:id/permissions    # 分配权限
 - `uk_group_user` (group_id, user_id) — 唯一索引，组内用户不重复
 - `idx_user` (user_id) — 按用户查询所属组
 
----
-
-**用户组权限表（user_group_permissions）**
-
-| 字段 | 类型 | 必填 | 说明 | 示例 |
-|------|------|------|------|------|
-| id | BIGINT | 是 | 主键 | 3001 |
-| group_id | BIGINT | 是 | 用户组 ID | 1001 |
-| permission_id | BIGINT | 是 | 权限 ID | 5001 |
-| created_at | DATETIME | - | 创建时间 | 2026-03-28 10:00:00 |
-
-**索引**：
-- `uk_group_permission` (group_id, permission_id) — 唯一索引
-- `idx_group` (group_id)
-
----
-
-**用户组管理员表（user_group_admins）**
-
-| 字段 | 类型 | 必填 | 说明 | 示例 |
-|------|------|------|------|------|
-| id | BIGINT | 是 | 主键 | 4001 |
-| group_id | BIGINT | 是 | 用户组 ID | 1001 |
-| user_id | BIGINT | 是 | 管理员用户 ID | 2001 |
-| created_at | DATETIME | - | 创建时间 | 2026-03-28 10:00:00 |
-
-**索引**：`uk_group_user` (group_id, user_id) — 唯一索引
+> 注：`user_group_permissions`、`user_group_admins`、动态组规则表不纳入 v1 数据模型。
 
 **验收标准：**
 
@@ -194,6 +153,5 @@ POST   /api/v1/user-groups/:id/permissions    # 分配权限
 - [ ] 树形层级结构正确维护
 - [ ] 循环引用被正确阻止
 - [ ] 成员可正常添加和移除
-- [ ] 权限继承正确生效
-- [ ] 用户权限计算为所有组权限并集
-- [ ] 组管理员只能管理本组
+- [ ] 批量导入/批量分组可基于用户组执行
+- [ ] 用户组不改变现有 RBAC 权限计算结果

@@ -40,6 +40,7 @@
 |------|------|------|
 | operation_id | 操作唯一标识 | `op_xxxxxxxxx` |
 | tenant_id | 租户 ID | `1001` |
+| app_id | 应用 ID（可选） | `3001` |
 | user_id | 操作人 ID | `2001` |
 | user_name | 操作人姓名 | `张三` |
 | operation_type | 操作类型 | `USER_CREATE` |
@@ -138,11 +139,11 @@
 **API 接口：**
 
 ```
-GET    /api/v1/audit-logs                 # 审计日志列表
-GET    /api/v1/audit-logs/:id             # 审计日志详情
-GET    /api/v1/audit-logs/export          # 导出审计日志
-GET    /api/v1/audit-logs/statistics      # 统计数据
-GET    /api/v1/audit-logs/operation-types # 获取操作类型列表
+GET    /api/v1/logs/audit                 # 审计日志列表
+GET    /api/v1/logs/audit/:id             # 审计日志详情
+GET    /api/v1/logs/audit/export          # 导出审计日志
+GET    /api/v1/logs/audit/statistics      # 统计数据
+GET    /api/v1/logs/audit/operation-types # 获取操作类型列表
 ```
 
 **数据库设计：**
@@ -153,6 +154,7 @@ GET    /api/v1/audit-logs/operation-types # 获取操作类型列表
 |------|------|------|------|------|
 | id | BIGINT | 是 | 主键 | 1001 |
 | tenant_id | BIGINT | 是 | 租户 ID | 100 |
+| app_id | BIGINT | 否 | 应用 ID | 3001 |
 | user_id | BIGINT | 否 | 操作人 ID | 2001 |
 | user_name | VARCHAR(100) | 否 | 操作人姓名 | 张三 |
 | operation_type | VARCHAR(50) | 是 | 操作类型 | USER_CREATE/ROLE_ASSIGN |
@@ -184,4 +186,3 @@ GET    /api/v1/audit-logs/operation-types # 获取操作类型列表
 - [ ] 过期日志自动清理
 - [ ] 统计数据准确
 - [ ] 敏感数据脱敏显示
-

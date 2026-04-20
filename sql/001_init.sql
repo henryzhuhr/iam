@@ -43,6 +43,25 @@ CREATE TABLE `users` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='用户表';
 
 -- ============================================
+-- 2.1 user_invitations — 用户邀请表
+-- ============================================
+CREATE TABLE `user_invitations` (
+    `id`              BIGINT       NOT NULL AUTO_INCREMENT,
+    `tenant_id`       BIGINT       NOT NULL COMMENT '目标租户 ID',
+    `email`           VARCHAR(100) NOT NULL COMMENT '受邀邮箱',
+    `inviter_user_id` BIGINT                DEFAULT NULL COMMENT '邀请人用户 ID',
+    `token_hash`      VARCHAR(255) NOT NULL COMMENT '邀请令牌哈希',
+    `status`          TINYINT      NOT NULL DEFAULT 1 COMMENT '1=待接受 2=已接受 3=已过期 4=已撤销',
+    `expires_at`      DATETIME     NOT NULL COMMENT '过期时间',
+    `accepted_at`     DATETIME              DEFAULT NULL COMMENT '接受时间',
+    `created_at`      DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (`id`),
+    UNIQUE KEY `uk_token_hash` (`token_hash`),
+    INDEX `idx_tenant_email_status` (`tenant_id`, `email`, `status`),
+    INDEX `idx_expires_at` (`expires_at`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='用户邀请表';
+
+-- ============================================
 -- 3. user_groups — 用户组表
 -- ============================================
 CREATE TABLE `user_groups` (
@@ -50,10 +69,18 @@ CREATE TABLE `user_groups` (
     `tenant_id`   BIGINT       NOT NULL COMMENT '租户 ID',
     `name`        VARCHAR(100) NOT NULL COMMENT '用户组名称',
     `description` TEXT                  DEFAULT NULL,
+    `parent_id`   BIGINT                DEFAULT NULL COMMENT '父组 ID',
+    `level`       INT          NOT NULL DEFAULT 1 COMMENT '层级深度',
+    `path`        VARCHAR(500)          DEFAULT NULL COMMENT '完整路径',
+    `is_system`   TINYINT      NOT NULL DEFAULT 0 COMMENT '是否系统组',
+    `group_type`  VARCHAR(20)  NOT NULL DEFAULT 'NORMAL' COMMENT '组类型',
+    `sort_order`  INT          NOT NULL DEFAULT 0 COMMENT '排序号',
     `created_at`  DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP,
     `updated_at`  DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     PRIMARY KEY (`id`),
-    INDEX `idx_tenant` (`tenant_id`)
+    INDEX `idx_tenant` (`tenant_id`),
+    INDEX `idx_parent` (`parent_id`),
+    INDEX `idx_path` (`path`(100))
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='用户组表';
 
 -- ============================================
@@ -61,11 +88,14 @@ CREATE TABLE `user_groups` (
 -- ============================================
 CREATE TABLE `user_group_members` (
     `id`         BIGINT   NOT NULL AUTO_INCREMENT,
+    `tenant_id`  BIGINT   NOT NULL COMMENT '租户 ID',
     `group_id`   BIGINT   NOT NULL COMMENT '用户组 ID',
     `user_id`    BIGINT   NOT NULL COMMENT '用户 ID',
+    `created_by` BIGINT            DEFAULT NULL COMMENT '操作人',
     `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     PRIMARY KEY (`id`),
     UNIQUE KEY `uk_group_user` (`group_id`, `user_id`),
+    INDEX `idx_tenant` (`tenant_id`),
     INDEX `idx_group` (`group_id`),
     INDEX `idx_user` (`user_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='用户组成员表';
@@ -189,18 +219,36 @@ CREATE TABLE `user_app_authorizations` (
 -- 12. clients — 内部客户端表
 -- ============================================
 CREATE TABLE `clients` (
-    `id`              BIGINT       NOT NULL AUTO_INCREMENT,
-    `client_id`       VARCHAR(64)  NOT NULL COMMENT '客户端标识',
-    `access_key`      VARCHAR(64)  NOT NULL COMMENT 'AK',
-    `secret_key_hash` VARCHAR(255) NOT NULL COMMENT 'SK 哈希',
-    `name`            VARCHAR(100) NOT NULL COMMENT '客户端名称',
-    `allowed_scopes`  JSON         NOT NULL COMMENT '允许的 scopes',
-    `status`          TINYINT      NOT NULL DEFAULT 1 COMMENT '1=启用 2=禁用',
-    `created_at`      DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    `updated_at`      DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    `id`                   BIGINT       NOT NULL AUTO_INCREMENT,
+    `client_id`            VARCHAR(64)  NOT NULL COMMENT '客户端标识',
+    `name`                 VARCHAR(100) NOT NULL COMMENT '客户端名称',
+    `allowed_scopes`       JSON         NOT NULL COMMENT '允许的 scopes',
+    `access_token_ttl_sec` INT          NOT NULL DEFAULT 600 COMMENT 'Access Token TTL（秒）',
+    `status`               TINYINT      NOT NULL DEFAULT 1 COMMENT '1=启用 2=禁用',
+    `created_at`           DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    `updated_at`           DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     PRIMARY KEY (`id`),
     UNIQUE KEY `uk_client_id` (`client_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='内部客户端表';
+
+-- ============================================
+-- 12.1 client_credentials — 客户端凭证表
+-- ============================================
+CREATE TABLE `client_credentials` (
+    `id`            BIGINT       NOT NULL AUTO_INCREMENT,
+    `client_id`     BIGINT       NOT NULL COMMENT '客户端主键 ID',
+    `access_key_id` VARCHAR(64)  NOT NULL COMMENT 'AK 标识',
+    `secret_hash`   VARCHAR(255) NOT NULL COMMENT 'SK 哈希值',
+    `secret_hint`   VARCHAR(16)           DEFAULT NULL COMMENT 'SK 提示信息',
+    `status`        TINYINT      NOT NULL DEFAULT 1 COMMENT '1=启用 2=禁用 3=过期',
+    `expires_at`    DATETIME              DEFAULT NULL COMMENT '过期时间',
+    `last_used_at`  DATETIME              DEFAULT NULL COMMENT '最近使用时间',
+    `rotated_at`    DATETIME              DEFAULT NULL COMMENT '轮换时间',
+    `created_at`    DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (`id`),
+    UNIQUE KEY `uk_access_key_id` (`access_key_id`),
+    INDEX `idx_client_status` (`client_id`, `status`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='客户端凭证表';
 
 -- ============================================
 -- 13. audit_logs — 操作审计日志表
@@ -208,6 +256,7 @@ CREATE TABLE `clients` (
 CREATE TABLE `audit_logs` (
     `id`            BIGINT       NOT NULL AUTO_INCREMENT,
     `tenant_id`     BIGINT       NOT NULL COMMENT '租户 ID',
+    `app_id`        BIGINT                DEFAULT NULL COMMENT '应用 ID',
     `user_id`       BIGINT       NOT NULL COMMENT '操作人',
     `action`        VARCHAR(100) NOT NULL COMMENT '操作类型',
     `resource_type` VARCHAR(50)  NOT NULL COMMENT '资源类型',
@@ -217,6 +266,7 @@ CREATE TABLE `audit_logs` (
     `created_at`    DATETIME     NOT NULL COMMENT '操作时间',
     PRIMARY KEY (`id`),
     INDEX `idx_tenant` (`tenant_id`),
+    INDEX `idx_app` (`app_id`),
     INDEX `idx_user` (`user_id`),
     INDEX `idx_created_at` (`created_at`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='操作审计日志表';
@@ -228,6 +278,7 @@ CREATE TABLE `login_logs` (
     `id`          BIGINT        NOT NULL AUTO_INCREMENT,
     `tenant_id`   BIGINT        NOT NULL COMMENT '租户 ID',
     `user_id`     BIGINT                 DEFAULT NULL COMMENT 'NULL=登录失败',
+    `app_id`      BIGINT                 DEFAULT NULL COMMENT '应用 ID',
     `email`       VARCHAR(100)  NOT NULL COMMENT '登录账号',
     `status`      TINYINT       NOT NULL COMMENT '1=成功 2=失败 3=MFA待验证',
     `fail_reason` VARCHAR(200)           DEFAULT NULL COMMENT '失败原因',
@@ -237,6 +288,7 @@ CREATE TABLE `login_logs` (
     `created_at`  DATETIME      NOT NULL COMMENT '登录时间',
     PRIMARY KEY (`id`),
     INDEX `idx_tenant` (`tenant_id`),
+    INDEX `idx_app` (`app_id`),
     INDEX `idx_created_at` (`created_at`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='登录日志表';
 

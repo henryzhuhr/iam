@@ -7,7 +7,7 @@
 | REQ | 需求名称 | 优先级 | 文档 |
 |-----|----------|--------|------|
 | REQ-001 | 用户登录功能 | P0 | [REQ-001-user-login.md](./REQ-001-user-login.md) |
-| REQ-002 | 用户注册功能 | P0 | [REQ-002-user-registration.md](./REQ-002-user-registration.md) |
+| REQ-002 | 用户注册与激活功能 | P0 | [REQ-002-user-registration.md](./REQ-002-user-registration.md) |
 | REQ-003 | 密码重置功能 | P0 | [REQ-003-password-reset.md](./REQ-003-password-reset.md) |
 | REQ-008 | MFA 多因素认证 | P1 | [REQ-008-mfa.md](./REQ-008-mfa.md) |
 | REQ-011 | OAuth2 第三方登录 | P2 | [REQ-011-oauth2-third-party-login.md](./REQ-011-oauth2-third-party-login.md) |
@@ -48,4 +48,4 @@
 | REQ | 需求名称 | 优先级 | 文档 |
 |-----|----------|--------|------|
 | REQ-016 | API 限流和配额管理 | P1 | [REQ-016-rate-limit-quota.md](./REQ-016-rate-limit-quota.md) |
-| REQ-017 | 应用级数据隔离 | P0 | [REQ-017-application-isolation.md](./REQ-017-application-isolation.md) |
+| REQ-017 | 应用管理与数据隔离功能 | P0 | [REQ-017-application-isolation.md](./REQ-017-application-isolation.md) |

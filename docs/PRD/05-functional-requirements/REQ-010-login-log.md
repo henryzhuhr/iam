@@ -43,6 +43,7 @@
 |------|------|------|
 | login_id | 登录记录唯一标识 | `log_xxxxxxxxx` |
 | tenant_id | 租户 ID | `1001` |
+| app_id | 应用 ID（可选） | `3001` |
 | user_id | 用户 ID（失败时为空） | `2001` |
 | username | 尝试登录的用户名 | `zhangsan@example.com` |
 | result | 登录结果 | `SUCCESS` / `FAILURE` |
@@ -172,10 +173,10 @@
 
 ```
 # 登录日志查询（管理员）
-GET    /api/v1/login-logs                 # 登录日志列表
-GET    /api/v1/login-logs/:id             # 登录日志详情
-GET    /api/v1/login-logs/export          # 导出登录日志
-GET    /api/v1/login-logs/statistics      # 统计数据
+GET    /api/v1/logs/login                 # 登录日志列表
+GET    /api/v1/logs/login/:id             # 登录日志详情
+GET    /api/v1/logs/login/export          # 导出登录日志
+GET    /api/v1/logs/login/statistics      # 统计数据
 
 # 用户个人登录历史
 GET    /api/v1/my/login-history          # 我的登录历史
@@ -193,6 +194,7 @@ DELETE /api/v1/my/sessions/all           # 登出所有会话
 | id | BIGINT | 是 | 主键 | 1001 |
 | tenant_id | BIGINT | 是 | 租户 ID | 100 |
 | user_id | BIGINT | 否 | 用户 ID（失败时为空） | 2001 |
+| app_id | BIGINT | 否 | 应用 ID（可选） | 3001 |
 | username | VARCHAR(100) | 否 | 尝试登录的用户名 | zhangsan@example.com |
 | result | VARCHAR(20) | 是 | 登录结果 | SUCCESS/FAILURE |
 | failure_reason | VARCHAR(50) | 否 | 失败原因 | INVALID_PASSWORD/ACCOUNT_LOCKED |
@@ -246,4 +248,3 @@ DELETE /api/v1/my/sessions/all           # 登出所有会话
 - [ ] 用户可查看和管理自己的会话
 - [ ] 日志导出功能正常
 - [ ] 过期日志自动清理
-
