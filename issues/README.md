@@ -12,9 +12,11 @@
 
 | 编号 | 标题 | 状态 | 创建日期 |
 |------|------|------|----------|
-| - | - | - | - |
-
-> 暂无 Issue，请从 001 开始创建。
+| 001 | [需求缺口收敛清单](./001-requirements-gap-checklist.md) | 待处理 | 2026-04-21 |
+| 002 | [明确注册模型与租户归属规则](./002-clarify-registration-and-tenant-binding.md) | 待处理 | 2026-04-21 |
+| 003 | [确认 REQ-017 应用隔离最终方案](./003-finalize-application-isolation-scope.md) | 待处理 | 2026-04-21 |
+| 004 | [对齐内部服务认证需求与设计](./004-align-internal-service-auth-design.md) | 待处理 | 2026-04-21 |
+| 005 | [冻结 v1 权限模型边界](./005-freeze-permission-model-v1.md) | 待处理 | 2026-04-21 |
 
 ## 新增 Issue 流程
 
