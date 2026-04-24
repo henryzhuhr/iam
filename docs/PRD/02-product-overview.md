@@ -41,7 +41,8 @@
 
 ## 2.5 技术栈
 
-- **后端**: Golang + go-zero 框架
+- **后端**: Golang + Gin + grpc-go 框架组合
+- **后端备选**: Kratos（保留为未来双协议微服务框架备选）
 - **数据库**: MySQL
 - **缓存**: Redis
 - **消息队列**: Kafka

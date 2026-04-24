@@ -355,11 +355,15 @@ flowchart LR
 
 | 层级 | 技术选型 |
 |------|----------|
-| 后端框架 | Golang + go-zero |
+| 后端框架 | Golang + Gin + grpc-go |
+| 后端备选 | Kratos |
+| 对外协议 | HTTP REST API + gRPC |
 | 数据库 | MySQL 8.0 |
 | 缓存 | Redis 7.0 |
 | 消息队列 | Kafka 3.0 |
 | 容器化 | Docker + Docker Compose |
+
+HTTP API 面向前端控制台和开放接口；gRPC API 面向内部微服务调用和被调用。两类协议入口分开维护契约，但共享同一套业务服务层。
 
 ### 3.6.2 部署架构
 

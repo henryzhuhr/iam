@@ -1,6 +1,6 @@
 # IAM 系统技术设计文档
 
-> 日期：2026-04-10
+> 日期：2026-04-24
 > 作者：IAM Team
 > 状态：待评审
 
@@ -12,11 +12,20 @@
 
 模块化单体（Modular Monolith），单一进程部署，内部按领域边界清晰划分。
 
+IAM 服务采用 HTTP + gRPC 双协议入口：
+
+- HTTP 服务面向前端控制台和开放 REST API，默认端口 `8888`
+- gRPC 服务面向内部微服务调用和被调用，默认端口 `9090`
+- 两个协议入口共享同一套 Service、Repository 和基础设施依赖
+
 ### 1.2 技术栈
 
 | 层级 | 技术选型 |
 |------|----------|
-| 后端框架 | Golang + go-zero |
+| 后端框架 | Golang + Gin + grpc-go |
+| 后端备选 | Kratos（保留为未来双协议微服务框架备选） |
+| HTTP API | REST + JSON |
+| RPC API | gRPC + Protocol Buffers |
 | 数据库 | MySQL 8.0 |
 | 缓存 | Redis 7.0 |
 | 消息队列 | Kafka 3.0 |
@@ -27,6 +36,8 @@
 
 ```
 iam/
+├── api/
+│   └── proto/                             # gRPC proto 契约
 ├── app/main.go                          # 应用入口
 ├── etc/dev.yaml                         # 配置文件
 ├── web/                                 # 前端源码目录
@@ -65,6 +76,12 @@ iam/
 │   │   ├── app/
 │   │   ├── client/
 │   │   └── audit/
+│   ├── grpc/                            # gRPC Server 实现
+│   │   ├── auth/
+│   │   ├── user/
+│   │   ├── tenant/
+│   │   ├── app/
+│   │   └── client/
 │   ├── repository/                      # 数据访问层
 │   │   ├── user_repo.go
 │   │   ├── role_repo.go
@@ -103,6 +120,8 @@ iam/
 | Token 机制 | RS256 JWT + Redis Refresh Token + 黑名单 | 纯 Session |
 | 审计日志写入 | Kafka 异步落盘 | 同步写入 |
 | 前端方案 | Vue 3 + Vite，构建文件放根目录 | 独立前端仓库 / web/ 下独立构建 |
+| 后端框架 | Gin + grpc-go，同进程双协议服务 | Kratos |
+| 协议契约 | HTTP 与 gRPC 分开维护，业务层复用 | Proto-first 统一生成 HTTP/gRPC |
 
 ---
 

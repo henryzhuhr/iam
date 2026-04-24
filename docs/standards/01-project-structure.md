@@ -1,6 +1,6 @@
 # 项目结构规范
 
-> 最后更新：2026-03-29
+> 最后更新：2026-04-24
 > 适用范围：IAM 项目
 
 ---
@@ -16,7 +16,9 @@ IAM (身份认证与访问管理 / Identity and Access Management) 是一个以 
 | **Golang** | 主要应用逻辑、API 服务器和业务逻辑 |
 | **Python** | 业务接口测试，使用 `uv` 作为包管理器和运行环境 |
 | **Vue 3 / TypeScript** | 前端 Web 控制台，Vite 构建 |
-| **go-zero** | 后端微服务框架 |
+| **Gin** | HTTP API 框架，面向前端控制台和开放 REST API |
+| **grpc-go** | gRPC 服务框架，面向内部微服务调用和被调用 |
+| **Kratos** | 后端双协议服务框架备选方案，当前不纳入主实现 |
 | **MySQL** | 数据库 |
 | **Redis** | 缓存 |
 | **Kafka** | 消息队列 |
@@ -27,6 +29,8 @@ IAM (身份认证与访问管理 / Identity and Access Management) 是一个以 
 
 ```bash
 iam/
+├── api/                    # 对外接口契约
+│   └── proto/              # gRPC proto 定义
 ├── app/                    # 应用入口
 │   └── main.go             # 主程序入口
 ├── etc/                    # 配置文件
@@ -42,6 +46,7 @@ iam/
 │   ├── dto/                # 数据传输对象
 │   ├── entity/             # 实体模型
 │   ├── handler/            # HTTP 处理器
+│   ├── grpc/               # gRPC 服务实现
 │   ├── repository/         # 数据访问层
 │   ├── routes/             # 路由注册
 │   ├── service/            # 业务逻辑层
@@ -81,6 +86,9 @@ internal/
 ├── handler/           # HTTP 处理器
 │   └── <module>/      # 按业务模块划分子目录
 │       └── xxx.go     # 接收请求、参数校验、调用 Service、返回响应
+├── grpc/              # gRPC 服务层
+│   └── <module>/      # 按业务模块划分子目录
+│       └── xxx.go     # 实现 proto 生成的 gRPC Server 接口
 ├── middleware/        # HTTP 中间件
 │   └── xxx.go         # 用户代理、日志、认证等中间件
 ├── repository/        # 数据访问层
@@ -88,7 +96,7 @@ internal/
 ├── routes/            # 路由注册
 │   ├── routes.go      # 统一路由注册入口
 │   └── <module>/      # 按业务模块划分子目录
-│       ├── xxx.go     # 路由定义（使用 go-zero rest.Server）
+│       ├── xxx.go     # 路由定义（使用 Gin RouterGroup）
 │       └── xxx.swagger.yaml  # OpenAPI/Swagger 文档
 ├── service/           # 业务逻辑层
 │   └── <module>/      # 按业务模块划分子目录
@@ -123,9 +131,11 @@ npm run test
 
 1. **定义 DTO**：在 `internal/dto/<module>/` 中定义请求和响应结构。
 2. **实现 Service**：在 `internal/service/<module>/` 中实现核心业务逻辑，通过 `svcCtx` 访问依赖。
-3. **实现 Handler**：在 `internal/handler/<module>/` 中接收请求、校验参数、调用 Service，并返回 JSON 响应。
-4. **注册路由**：在 `internal/routes/<module>/` 中定义路由，并在 `internal/routes/routes.go` 注册。
-5. **编写 Swagger 文档**：在 `internal/routes/<module>/<module>.swagger.yaml` 中维护接口路径、参数和请求/响应 Schema。
+3. **实现 HTTP Handler**：在 `internal/handler/<module>/` 中接收请求、校验参数、调用 Service，并返回 JSON 响应。
+4. **注册 HTTP 路由**：在 `internal/routes/<module>/` 中定义 Gin 路由，并在 `internal/routes/routes.go` 注册。
+5. **维护 OpenAPI 文档**：在 `internal/routes/<module>/<module>.swagger.yaml` 中维护接口路径、参数和请求/响应 Schema。
+6. **按需新增 gRPC 契约**：在 `api/proto/` 中定义 proto，并在 `internal/grpc/<module>/` 中实现 gRPC Server。
+7. **复用业务层**：HTTP Handler 和 gRPC Server 必须调用同一套 `service`，不得复制业务逻辑。
 
 ## 7. Issues 规范
 

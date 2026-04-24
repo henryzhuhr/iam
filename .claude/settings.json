@@ -1,5 +1,9 @@
 {
-  "enabledPlugins": {
-    "superpowers@claude-plugins-official": true
+  "permissions": {
+    "allow": [
+      "Bash(docker compose:*)",
+      "Bash(go get:*)",
+      "Bash(go mod:*)"
+    ]
   }
 }
